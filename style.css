@@ -1,0 +1,15 @@
+.bd{
+    border: 1px solid black;
+}
+header{
+    /* background: gray; */
+    /* border: 1px solid black; */
+}
+.col{
+    display: inline-block;
+    vertical-align: top;
+}
+.res-icon{
+    display: inline-block;
+    width: 120px;
+}

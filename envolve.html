@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <title>进化星际版</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, height=device-height, initial-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
+    <meta name="description" content="进化星际版" />
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="class.js"></script>
+    <script src="var.js"></script>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="bd">
+        <div>资源总览区域</div>
+        <div v-for="(index,ele) in baseRes_lv1_key" class="res-icon">
+          {{ index }}: {{ getNum(index) }}
+        </div>
+        <div v-for="(index,ele) in baseRes_lv2_key" class="res-icon">
+          {{ index }}: {{ getNum(index) }}
+        </div>
+      </header>
+      <div style="width: 100%; height: 720px;">
+        <div class="col bd" style="height: 100%; width: 68%;">操作区域</div>
+        <div class="col" style="width: 30%; height: 100%;">
+          <div class="bd" style="height: 70%;">具体分配区域</div>
+          <div class="bd" style="height: 30%;">星球总览</div>
+        </div>
+      </div>      
+      <div>{{ message }}</div>
+    </div>
+  </body>
+  <script src="main.js"></script>
+</html>
