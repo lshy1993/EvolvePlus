@@ -17,19 +17,45 @@
   <body>
     <div id="app">
       <header class="bd">
-        <div>{{ stellarName }} 星系 {{ planetName }}资源总览</div>
-        <div v-for="(index,ele) in baseRes_lv1_key" class="res-icon">
-          {{ index }}: {{ getNum(index) }}
+        <div>{{ stellarName }}星系-{{ planetName }}星
+          <button @click="hiddentop=!hiddentop">资源总览</button></div>
+        <transition name="fade">
+          <div v-show="!hiddentop">
+            <div v-for="(ele,index) in curPlanet.showRes()" class="res-icon">
+              {{ index }}: {{ ele }}
+            </div>
         </div>
-        <div v-for="(index,ele) in baseRes_lv2_key" class="res-icon">
-          {{ index }}: {{ getNum(index) }}
-        </div>
+        </transition>
       </header>
       <div style="width: 100%; height: 720px;">
-        <div class="col bd" style="height: 100%; width: 68%;">操作区域</div>
+        <div class="col bd" style="height: 100%; width: 68%;">
+          操作区域
+          <div>
+            <button @click="opttype=1">资源</button>
+            <button @click="opttype=2">合成</button>
+            <button @click="opttype=3">研究</button>
+          </div>
+          <div class="viewbox" v-if="opttype == 1">
+            <div class="bd minebox" v-for="(ele,index) in curPlanet.mine">
+              <div>{{ ele.name }}</div>
+              <div>{{ simNumber(ele.curNum) }}</div>
+              <button v-if="ele.mineType<=1" @click="player.Mine(ele)">手动采集</button>
+              <button v-if="ele.mineType==1" @click="player.SetAuto(ele)">{{ ele.isAuto?"拆除":"设置"}}采矿机</button>
+              <button v-if="ele.mineType==2" @click="player.SetAuto(ele)">{{ ele.isAuto?"拆除":"设置"}}抽水机</button>
+              <button v-if="ele.mineType==3" @click="player.SetAuto(ele)">{{ ele.isAuto?"拆除":"设置"}}采集器</button>
+            </div>
+          </div>
+          <div class="viewbox" v-if="opttype == 2">合成</div>
+          <div class="viewbox" v-if="opttype == 3">研究</div>
+        </div>
         <div class="col" style="width: 30%; height: 100%;">
-          <div class="bd" style="height: 70%;">具体分配区域</div>
-          <div class="bd" style="height: 30%;">星球总览</div>
+          <div class="bd" style="height: 70%;">
+            <div>背包总览</div>
+            <div v-for="(ele,index) in player.showBag()" class="res-icon">
+              {{ index }}: {{ ele }}
+            </div>
+          </div>
+          <div class="bd" style="height: 30%;">星域图</div>
         </div>
       </div>      
       <div>{{ message }}</div>

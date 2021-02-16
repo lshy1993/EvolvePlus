@@ -4,19 +4,23 @@ var app = new Vue({
     message: 'Hello Vue!',
     baseRes_lv1_key,
     baseRes_lv2_key,
+    opttype: 1,
+    hiddentop: false,
     universe,
-    curStella,
-    curPlanet,
+    player,
+    curStellar: undefined,
+    curPlanet: undefined,
     stellar_k: 0,
-    planet_k: 0
+    planet_k: 0,    
   },
   created(){
     // TODO: load
+    this.movePlanet();
     setInterval(this.mainLoop,1000);
   },
   computed:{
     stellarName(){
-      if(this.curStella) return this.curStella.name;
+      if(this.curStellar) return this.curStellar.name;
       else return "";
     },
     planetName(){
@@ -28,10 +32,7 @@ var app = new Vue({
     movePlanet(){
       this.curStellar = universe.getStellar(this.stellar_k);
       this.curPlanet = this.curStellar.getPlanet(this.planet_k);
-    },
-    getNum(key){
-      let n = this.curPlanet.baseRes[key];
-      return simNumber(n);
+      console.log("move to planet "+this.curPlanet.name);
     },
     mainLoop(){
       universe.update();
