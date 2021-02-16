@@ -17,7 +17,7 @@
   <body>
     <div id="app">
       <header class="bd">
-        <div>资源总览区域</div>
+        <div>{{ stellarName }} 星系 {{ planetName }}资源总览</div>
         <div v-for="(index,ele) in baseRes_lv1_key" class="res-icon">
           {{ index }}: {{ getNum(index) }}
         </div>
