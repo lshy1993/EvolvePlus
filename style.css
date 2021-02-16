@@ -7,6 +7,11 @@
     background: rgba(0,0,0,.2);
     z-index: 999;
 }
+.hoverWrap{
+    width: 1080px;
+    margin: 150px auto;
+    background: white;
+}
 .bd{
     border: 1px solid black;
 }
@@ -18,31 +23,10 @@ header{
     display: inline-block;
     vertical-align: top;
 }
+
 .res-icon{
     display: inline-block;
     width: 120px;
-}
-.viewbox{
-    /* display: flex; */
-    margin-top: 5px;
-}
-.minebox{
-    /* display: flexbox; */
-    position: relative;
-    float: left;
-    margin-right: 2px;
-    margin-bottom: 2px;
-    width: 100px;
-    height: 100px;
-}
-
-.buildbox{
-    position: relative;
-    display: inline-block;
-    margin-right: 2px;
-    margin-bottom: 2px;
-    width: 150px;
-    line-height: 200px;
 }
 
 .build-icon{
@@ -51,6 +35,34 @@ header{
     margin-bottom: 2px;
     width: 120px;
     height: 100px;
+}
+
+.viewbox{
+    /* display: flex; */
+    margin-top: 5px;
+}
+.minebox{
+    /* display: flexbox; */
+    position: relative;
+    box-sizing: border-box;
+    float: left;
+    margin: 2px;
+    padding: 2px;
+    width: 100px;
+    height: 100px;
+}
+
+.buildbox{
+    position: relative;
+    display: inline-block;
+    box-sizing: border-box;
+    margin: 2px;
+    padding: 2px;
+    /* margin-right: 2px;
+    margin-bottom: 2px; */
+    width: 150px;
+    height: 200px;    
+    vertical-align: top;
 }
 
 .warning{
