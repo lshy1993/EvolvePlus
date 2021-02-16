@@ -18,13 +18,15 @@
     <div id="app">
       <header class="bd">
         <div>{{ stellarName }}星系-{{ planetName }}星
-          <button @click="hiddentop=!hiddentop">资源总览</button></div>
+          <button @click="hiddentop=!hiddentop">资源总览</button>
+          <div>电网：{{ curPlanet.getPowerRate() }} 负载：{{curPlanet.powerload}} / 发电：{{curPlanet.powerall}}</div>
+        </div>
         <transition name="fade">
           <div v-show="!hiddentop">
             <div v-for="(ele,index) in curPlanet.showRes()" class="res-icon">
               {{ index }}: {{ ele }}
             </div>
-        </div>
+          </div>
         </transition>
       </header>
       <div style="width: 100%; height: 720px;">
@@ -32,33 +34,60 @@
           操作区域
           <div>
             <button @click="opttype=1">资源</button>
-            <button @click="opttype=2">合成</button>
+            <button @click="opttype=2">建筑</button>
             <button @click="opttype=3">研究</button>
           </div>
           <div class="viewbox" v-if="opttype == 1">
             <div class="bd minebox" v-for="(ele,index) in curPlanet.mine">
-              <div>{{ ele.name }}</div>
+              <div>{{ ele.name }}{{ele.isAuto?"【自】":""}}</div>
+              <div v-if="ele.isAuto" class="warning">{{curPlanet.checkRes(ele)}}</div>
               <div>{{ simNumber(ele.curNum) }}</div>
               <button v-if="ele.mineType<=1" @click="player.Mine(ele)">手动采集</button>
-              <button v-if="ele.mineType==1" @click="player.SetAuto(ele)">{{ ele.isAuto?"拆除":"设置"}}采矿机</button>
-              <button v-if="ele.mineType==2" @click="player.SetAuto(ele)">{{ ele.isAuto?"拆除":"设置"}}抽水机</button>
-              <button v-if="ele.mineType==3" @click="player.SetAuto(ele)">{{ ele.isAuto?"拆除":"设置"}}采集器</button>
+              <button v-if="ele.mineType==1" @click="player.SetAutoMine(ele)">{{ ele.isAuto?"拆除":"设置"}}采矿机</button>
+              <button v-if="ele.mineType==2" @click="player.SetAutoMine(ele)">{{ ele.isAuto?"拆除":"设置"}}抽水机</button>
+              <button v-if="ele.mineType==3" @click="player.SetAutoMine(ele)">{{ ele.isAuto?"拆除":"设置"}}采集器</button>
             </div>
           </div>
-          <div class="viewbox" v-if="opttype == 2">合成</div>
+          <div class="viewbox" v-if="opttype == 2">
+            <div class="bd buildbox" v-for="(ele,index) in curPlanet.building">
+              <div>#{{index}} {{ ele.name }}</div>
+              <div>电能：{{ ele.power }}</div>
+              <div class="warning">{{curPlanet.checkBuild(ele)}}</div>
+              <button @click="removeBuild(ele.name,index)">拆除</button>
+              <button v-if="ele.update">升级</button>
+              <div v-if="ele.type == 3">
+                <button>选择配方</button>
+                <div v-if="ele.recipe">{{ ele.recipe.name }}</div>
+              </div>
+            </div>
+            <button class="buildbox" @click="showhover=true">建造</button>
+          </div>
           <div class="viewbox" v-if="opttype == 3">研究</div>
         </div>
         <div class="col" style="width: 30%; height: 100%;">
           <div class="bd" style="height: 70%;">
-            <div>背包总览</div>
-            <div v-for="(ele,index) in player.showBag()" class="res-icon">
-              {{ index }}: {{ ele }}
+            <button @click="bagtype=1">背包</button>
+            <button @click="bagtype=2">合成</button>
+            <div v-if="bagtype==1">
+              <div v-for="(ele,index) in player.showBag()" class="res-icon">
+                {{ index }}: {{ ele }}
+              </div>
             </div>
+            <div v-if="bagtype==2">合成</div>
           </div>
           <div class="bd" style="height: 30%;">星域图</div>
         </div>
       </div>      
       <div>{{ message }}</div>
+      <div v-show="showhover" class="hover">
+        <button @click="showhover=false">关闭</button>
+        <div v-for="k in 4" :key="k" style="display: block;">
+          <button class="build-icon" v-for="index in building_key[k]" :disabled="player.bag[index]==0" @click="addBuild(index)">
+            {{ index }}<br>
+            需求电力:{{ buildingObject[index].power }}/{{ buildingObject[index].idlepower }}
+          </button>
+        </div>
+      </div>
     </div>
   </body>
   <script src="main.js"></script>

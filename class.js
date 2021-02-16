@@ -1,17 +1,15 @@
 class Player{
     constructor(){
         this.bag = {};
+        this.curPlanet;
         this.init();
     }
 
     init(){
-        for(var key of baseRes_lv1_key){
+        for(var key in baseResObject){
             this.bag[key] = 0;
         }
-        for(var key of baseRes_lv2_key){
-            this.bag[key] = 0;
-        }
-        for(var key of building_key){
+        for(var key in buildingObject){
             this.bag[key] = 1;
         }
         console.log("player init");
@@ -30,26 +28,45 @@ class Player{
     Mine(resource){
         if(resource.curNum > 0){
           let key = resource.name;
-          console.log(key);
           this.bag[key]+=1;
           resource.curNum-=1;
         }
     }
 
-    SetAuto(resource){
+    SetAutoMine(resource){
+        if(resource.isAuto) this.RemoveMachine(resource);
+        else this.SetMachine(resource);
+    }
+
+    SetMachine(resource){
         let resname = resource.name;
         let key = baseResObject[resname].minetype;
         let item;
         if(key == 1) item="采矿机";
         if(key == 2) item="抽水机";
         if(key == 3) item="采集器";
-        if( this.bag[item] > 0){
+        if(this.bag[item] > 0){
             console.log("已设置"+item);
             resource.isAuto = true;
+            // 负数代表消耗
+            resource.power = buildingObject[item].power;
             this.bag[item] -= 1;
         }else{
           alert(item+" not enough!");
-        }      
+        }
+    }
+
+    RemoveMachine(resource){
+        let resname = resource.name;
+        let key = baseResObject[resname].minetype;
+        let item;
+        if(key == 1) item="采矿机";
+        if(key == 2) item="抽水机";
+        if(key == 3) item="采集器";
+        console.log("已移除"+item);
+        resource.isAuto = false;
+        resource.power = 0;
+        this.bag[item] += 1;
     }
 
 }
@@ -126,19 +143,20 @@ class Planet{
     constructor(stellar, isfixed, parent) {
         this.stellar = stellar;
         this.name = "";
-        /** 星球的类型 0恒星 1-8不同类型恒心 */
-        this.type = 0;
-        if(!isfixed) this.type = Math.ceil(Math.random()*8);
+        /** 是否恒星 */
+        this.isfixed = isfixed;
+        /** 星球的类型0-8不同类型 */
+        this.type = Math.ceil(Math.random()*8);
         /** 是否是其他星的卫星 */
         this.parent = parent;
-        /** 星球的资源 */
+        /** 星球储存资源 */
         this.baseRes = {};
-        /** 剩余可开采资源 */
-        // this.remainRes = {};
         /** 矿点 */
         this.mine = [];
-        /** 合成台 */
-        this.craft = [];
+        /** 建筑物 */
+        this.building = [];
+        this.powerall = 0;
+        this.powerload = 0;
         this.init();
     }
     
@@ -160,24 +178,95 @@ class Planet{
         }
         console.log("plannet "+this.name+" init");
     }
-
+    /** 显示储存的资源 */
     showRes(){
         let d = {};
         for(var key in this.baseRes){
-            if(this.baseRes[key]>0) d[key]=simNumber(this.baseRes[key]);
+            // if(this.baseRes[key]>0) 
+            d[key] = simNumber(this.baseRes[key]);
+        }
+        return d;
+    }
+    /** 剩余可开采资源 */
+    remainRes(){
+        let d = {};
+        for(var ele of this.mine){
+            let key = ele.name;
+            if(d[key]) d[key] += ele.curNum;
+            else d[key] = 0;
         }
         return d;
     }
 
+    /** 计算耗电量*/
+    getPowerRate(){
+        if(this.powerall <= 0) return 0;
+        let d = Math.min(this.powerall/this.powerload,1)*100;
+        return d.toFixed(2);
+    }
+
+    updatePower(){
+        let powerload = 0;
+        let powerall = 0;
+        for(var ele of this.building){
+            if(ele.power > 0) powerall += ele.power;
+            else powerload += -ele.power;
+        }        
+        for(var ele of this.mine){
+            powerload += -ele.power;
+        }
+        this.powerall = powerall;
+        this.powerload = powerload;
+    }
+
+    /** 增加新的建筑 */
+    Build(index){
+        this.building.push(new Machine(index));
+    }
+
+    removeBuild(index){
+        this.building.splice(index);
+    }
+
+    /** 检测资源运行状态 */
+    checkRes(res){
+        if(this.powerload > this.powerall) return "电";
+        if(res.curNum==0) return "空";
+        if(this.baseRes[res.name] >= 1000)return "满";
+        return "";
+    }
+    /** 检测建筑运行状态 */
+    checkBuild(build){
+
+    }
+
     update(){
+        this.updatePower();
+        let powerrate = this.getPowerRate();
         // 循环矿产产出
         for(var ele of this.mine){
             let key = ele.name;
-            if(ele.isAuto) this.baseRes[key] += ele.mineSpd;
+            if(ele.isAuto) this.baseRes[key] += ele.realProduct(powerrate);
         }
         // 循环资源消耗
-        for(var key in this.baseRes){
-            // this.baseRes[key] += Math.floor(Math.random()*10);
+        for(var ele of this.building){
+            if(ele.t<ele.time){
+                // 积累时间
+                ele.t += 1*powerrate;
+                return;
+            }
+            ele.t -= ele.time;
+            let recipe = ele.recipe;
+            if(recipe){
+                // 产物消耗
+                for(var ele of recipe.inputs){
+                    this.baseRes[ele.name] -= ele.num;
+                }
+                // 产出增加
+                for(var key in recipe.outputs){
+                    this.baseRes[ele.name] += ele.num;
+                }
+            }
         }
     }
 
@@ -200,42 +289,61 @@ class Resources{
         this.isRare = type==1;
         /** 是否为合成产物 */
         this.isCompound = type==2;
-        /** 自动采集所需机器类型 0不可自动采集 1采矿 2抽水*/
-        this.mineType = baseResObject[name].minetype;
         /** 剩余数目 */
         this.curNum = Math.ceil(Math.random()*(10**d));
+        /** 自动采集所需机器类型 0不可自动采集 1采矿 2抽水*/
+        this.mineType = baseResObject[name].minetype;
         /** 是否已经在自动采集 */
         this.isAuto = false;
+        /** 自动采集电量需求 */
+        this.power = 0;
         /** 默认采集速度 */
         this.mineSpd = 1;
     }
-
+    /** 真实产出 */
+    realProduct(rate){
+        let out = this.mineSpd * rate;
+        if(this.curNum < this.mineSpd){
+            out = this.curNum;            
+        }
+        this.curNum -= out;
+        return out;
+    }
 }
 
 /** 配方 */
 class Recipe{
     constructor(tag, inputs, outputs, time)
-    {
+    {  
         /** 名称标记，暂时用于识别 */
         this.tag = tag;
         /** 输入产物字典 */
-        this.inputs = inputs;
+        this.inputs = dd.inputs;
         /** 输出产物字典 */
-        this.outputs = outputs;
+        this.outputs = dd.outputs;
         /** 基础消耗时间 */
-        this.time = time;
+        this.time = dd.time;
+        /** 距离上次生产的时间 */
+        this.t = 0;
     }
 }
 
-/** 机器 */
+/** 建筑类机器 */
 class Machine{
-    constructor(name, recipes, power)
+    constructor(name)
     {
+        let dd = buildingObject[name];
         /** 名称 */
         this.name = name;
-        /** 支持的配方 */
-        this.recipes = recipes;
+        /** 建筑类型 */
+        this.type = dd.type;
         /** 额定功率 */
-        this.power = power;
+        this.power = dd.power;
+        /** 是否能升级 */
+        this.update = dd.update;
+        /** 支持的配方 */
+        this.support_recipes = dd.recipes;
+        /** 当前运行配方 */
+        this.recipe;
     }
 }

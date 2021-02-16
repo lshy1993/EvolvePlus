@@ -1,3 +1,12 @@
+.hover{
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: rgba(0,0,0,.2);
+    z-index: 999;
+}
 .bd{
     border: 1px solid black;
 }
@@ -19,9 +28,34 @@ header{
 }
 .minebox{
     /* display: flexbox; */
+    position: relative;
     float: left;
     margin-right: 2px;
     margin-bottom: 2px;
     width: 100px;
     height: 100px;
+}
+
+.buildbox{
+    position: relative;
+    display: inline-block;
+    margin-right: 2px;
+    margin-bottom: 2px;
+    width: 150px;
+    line-height: 200px;
+}
+
+.build-icon{
+    display: inline-block;
+    margin-right: 2px;
+    margin-bottom: 2px;
+    width: 120px;
+    height: 100px;
+}
+
+.warning{
+    color: red;
+    position: absolute;
+    right: 0;
+    top: 0;
 }

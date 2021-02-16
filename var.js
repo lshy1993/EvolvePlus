@@ -64,9 +64,83 @@ var baseResObject = {
     }
 }
 
+var building_key = [
+    ["采矿机","抽水机"],
+    ["风力发电机","火力发电机","聚变发电机"],
+    ["合成台","合成台MK2","合成台MK3","熔炉","炼油厂","化工厂"],
+    ["科技中心"],
+    ["星际物流中心"]
+];
 
-var building_key = ["采矿机","抽水机","风力发电机","火力发电机","聚变发电机","合成台","合成台MK2","合成台MK3"];
-
+var buildingObject = {
+    "采矿机":{
+        type: 1,
+        power: -10,
+        idlepower: 1
+    },
+    "抽水机":{
+        type: 1,
+        power: -10,
+        idlepower: 1
+    },
+    "风力发电机":{
+        type: 2,
+        power: 10,
+        idlepower: 1
+    },
+    "火力发电机":{
+        type: 2,
+        power: 10,
+        idlepower: 1
+    },
+    "聚变发电机":{
+        type: 2,
+        power: 10,
+        idlepower: 1
+    },
+    "合成台":{
+        type: 3,
+        power: -10,
+        update: "合成台MK2",
+        idlepower: 1
+    },
+    "合成台MK2":{
+        type: 3,
+        power: -20,
+        update: "合成台MK3",
+        idlepower: 1
+    },
+    "合成台MK3":{
+        type: 3,
+        power: -30,
+        idlepower: 1
+    },
+    "熔炉":{
+        type: 3,
+        power: -20,
+        idlepower: 1
+    },
+    "炼油厂":{
+        type: 3,
+        power: -30,
+        idlepower: 1
+    },
+    "化工厂":{
+        type: 3,
+        power: -50,
+        idlepower: 1
+    },
+    "科技中心":{
+        type: 4,
+        power: -100,
+        idlepower: 1
+    },
+    "星际物流中心":{
+        type: 5,
+        power: -200,
+        idlepower: 1
+    }
+};
 /** 随机d位字母 */
 function rndChar(d){
     let name = "";
