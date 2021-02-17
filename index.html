@@ -43,8 +43,8 @@
               <div>{{ ele.name }}{{ele.isAuto?"【自】":""}}</div>
               <div v-if="ele.isAuto" class="warning">{{curPlanet.checkMine(ele)}}</div>
               <div>{{ simNumber(ele.curNum) }}</div>
-              <button v-if="ele.mineType<=1" @click="player.Mine(ele)">手动采集</button>
-              <button v-if="ele.mineType>=1" @click="player.SetAutoMine(ele)">{{ ele.isAuto?"拆除":"设置"}}{{ miner_key[ele.mineType-1] }}</button>
+              <button v-if="ele.mineType<=Types.MineType.Mining" @click="player.Mine(ele)">手动采集</button>
+              <button v-if="ele.mineType>=Types.MineType.Lumbering" @click="player.SetAutoMine(ele)">{{ ele.isAuto?"拆除":"设置"}}{{ miner_key[ele.mineType-1] }}</button>
             </div>
           </div>
           <div class="viewbox" v-if="opttype == 2">
@@ -59,8 +59,8 @@
                 </div>
               </div>
               <div v-if="ele.type == 3">
-                <div>额定功率：{{ ele.power }}</div>
-                <div>待机功率: {{ ele.idlepower }}</div>
+                <div>额定功率：{{ -ele.power }}</div>
+                <div>待机功率: {{ -ele.idlepower }}</div>
                 <button @click="openRecipe(ele)">选择配方</button>
                 <div v-if="ele.recipe">{{ ele.recipe.name }}</div>
                 <div class="warning">{{ curPlanet.checkMachine(ele) }}</div>
@@ -82,7 +82,7 @@
             <button v-for="ele in player.showTech()" :disabled="!player.isTechOn(ele)" :title="'需要【'+publicTech[ele].prev+'】'" @click="addTech(ele)">
               <div>{{ ele }}</div>
               <div>需要：
-                <span v-for="i in 6">{{ block_key[i-1] }}:{{ publicTech[ele].blocks[0] }} </span>
+                <span v-for="item in publicTech[ele].inputs">{{ item }}:{{ publicTech[ele].count }} </span>
               </div>
             </button>
           </div>

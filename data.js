@@ -27,34 +27,34 @@ baseResObject["铜矿"] = {type: Types.ResourceType.Basic, minetype: Types.MineT
 baseResObject["石料"] = {type: Types.ResourceType.Basic, minetype: Types.MineType.Mining, heat:0};
 baseResObject["水"] = {type: Types.ResourceType.Basic, minetype: Types.MineType.PumpingWater, heat:0};
 baseResObject["原油"] = {type: Types.ResourceType.Basic, minetype: Types.MineType.PumpingOil, heat:4.4e7};
-baseResObject["氢气"] = {type: Types.ResourceType.Basic, minetype: PumpingOil.OrbitCollection, heat:1.4e8};
+baseResObject["氢气"] = {type: Types.ResourceType.Basic, minetype: Types.MineType.PumpingOil, heat:1.4e8};
 baseResObject["可燃冰"] = {type: Types.ResourceType.Basic, minetype: Types.OrbitCollection, heat:7.5e6};
-baseResObject["硅矿"] = {type: Types.ResourceType.Basic, minetype: Types.CanMining, heat:0};
-baseResObject["铀矿"] = {type: Types.ResourceType.Basic, minetype: Types.CanMining, heat:0};
+baseResObject["硅矿"] = {type: Types.ResourceType.Basic, minetype: Types.MineType.Mining, heat:0};
+baseResObject["铀矿"] = {type: Types.ResourceType.Basic, minetype: Types.MineType.Mining, heat:0};
 baseResObject["氘"] = {type: Types.ResourceType.Basic, minetype: Types.None, heat:7e7};
-baseResObject["硫矿"] = {type: Types.ResourceType.Basic, minetype: Types.CanMining, heat:0};
-baseResObject["钛矿"] = {type: Types.ResourceType.Basic, minetype: Types.CanMining, heat:0};
-baseResObject["氦气"] = {type: Types.ResourceType.Basic, minetype: Types.OrbitCollection, heat:0};
-baseResObject["硫酸"] = {type: Types.ResourceType.Basic, minetype: Types.PumpingOil, heat:0};
+baseResObject["硫矿"] = {type: Types.ResourceType.Basic, minetype: Types.MineType.Mining, heat:0};
+baseResObject["钛矿"] = {type: Types.ResourceType.Basic, minetype: Types.MineType.Mining, heat:0};
+baseResObject["氦气"] = {type: Types.ResourceType.Basic, minetype: Types.MineType.OrbitCollection, heat:0};
+baseResObject["硫酸"] = {type: Types.ResourceType.Basic, minetype: Types.MineType.PumpingOil, heat:0};
 
-baseResObject["铁锭"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["铜锭"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["石材"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["钢"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["钛锭"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["精炼油"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:4.4e7};
+baseResObject["铁锭"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["铜锭"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["石材"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["钢"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["钛锭"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["精炼油"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:4.4e7};
 
-baseResObject["蜂窝煤"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:3.2e7};
-baseResObject["电路板"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["电池"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["硅片"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["cpu"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["蓝科技包"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["红科技包"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["黄科技包"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["紫科技包"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["绿科技包"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
-baseResObject["白科技包"] = {type: Types.ResourceType.Compound, minetype: Types.None, heat:0};
+baseResObject["蜂窝煤"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:3.2e7};
+baseResObject["电路板"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["电池"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["硅片"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["cpu"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["蓝科技包"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["红科技包"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["黄科技包"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["紫科技包"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["绿科技包"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
+baseResObject["白科技包"] = {type: Types.ResourceType.Compound, minetype: Types.MineType.None, heat:0};
 
 //配方
 var publicRecipe = {};
@@ -89,12 +89,6 @@ publicRecipe["炼铜"] = {
 publicRecipe["炼石"] = {
     type: Types.Recipe.CanHandmade,
     inputs: [{id:"石料",num:1}],
-    outputs: [{id:"铜锭",num:1}],
-    time: 1,
-};
-publicRecipe["炼铜"] = {
-    type: Types.Recipe.CanHandmade,
-    inputs: [{id:"铜矿",num:1}],
     outputs: [{id:"石材",num:1}],
     time: 1,
 };
@@ -178,7 +172,36 @@ publicRecipe["油井"] = {
     outputs: [{id:"油井",num:1}],
     time: 1,
 };
+publicRecipe["风力发电机"] = {
+    type: Types.Recipe.CanHandmade,
+    inputs: [{id:"铁锭",num:5}, {id:"电路板",num:5}],
+    outputs: [{id:"风力发电机",num:1}],
+    time: 1,
+};
+publicRecipe["太阳能板"] = {
+    type: Types.Recipe.CanHandmade,
+    inputs: [{id:"铁锭",num:5}, {id:"电路板",num:5},{id:"硅片", num:5}],
+    outputs: [{id:"太阳能板",num:1}],
+    time: 1,
+};
 
+var initialRecipe=["炼铁","炼铜","炼石","炼钛","煤炭加工","电路板","沙里淘硅","伐木机","采矿机","抽水机","油井","风力发电机","太阳能板"];
+
+var item2recipe={};
+for(var key in publicRecipe)
+{
+    var item = publicRecipe[key].outputs;
+    if(item != undefined && item.length > 0)
+    {
+        for(var it of items)
+        {
+            var id = it.id;
+            if(item2recipe[id] == undefined)
+                item2recipe[id] = [];
+            item2recipe[id].push(key);
+        }
+    }
+}
 
 //科技
 var publicTech = {};
@@ -189,6 +212,8 @@ count:总研发次数
 recipes:解锁配方
 machines:解锁机器
 modifiers:解锁修正buff
+infinity:无限升级科技，为数字则为最大升级次数，-1为无限，0或undefined为无
+requirements:前置科技
 */
 publicTech["高级冶炼"] = {
     inputs:["蓝科技包"],
@@ -207,7 +232,7 @@ idlepower: 输入原料不足时，待机电力，消耗一样为负
 update: 下一级升级
 speed: 速度加成
 */
-buildingObject["伐木机器"] = {
+buildingObject["伐木机"] = {
     type: 1,
     power: -4.2e5,
     idlepower: -1.5e4,

@@ -6,6 +6,8 @@ class Player{
         this.curPlanet;
         /** 已经研究的科技 */
         this.tech = {};
+        /** 已经解锁的配方 */
+        this.recipes = {};
         /** 手动研究效率 */
         this.hashSpeed = 100;
         this.curTech;
@@ -21,6 +23,9 @@ class Player{
         }
         for(var key in publicTech){
             this.tech[key] = new Tech(key);
+        }
+        for(var key of initialRecipe){
+            this.recipes[key] = 1;
         }
         console.log("player init");
     }
@@ -89,6 +94,39 @@ class Player{
     canCraft(recipe){
         for(var ele of recipe.inputs){
             if(this.bag[ele.id] < ele.num) return false;
+        }
+        return true;
+    }
+
+    CanCraftItem2(item, num, locked)
+    {
+        var re = item2recipe[item];
+        if(re == undefined || re.length <= 0)
+            return false;
+        for(var recipe of re)
+        {
+            if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
+                continue;
+            //我们约定每种物品最多一种手搓方案
+            if(CanCraftRecipe2(recipe, num, locked))
+                return true;
+            else
+                return false;
+        }
+        return false;
+    }
+
+    CanCraftRecipe2(recipe, num, locked)
+    {
+        if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
+            return false;
+        var initem = publicRecipe[recipe].inputs;
+        if(initem == undefined || initem.length <= 0)
+            return true;
+        for(var ele of initem)
+        {
+            if(!this.CanCraftItem2(ele.id, ele.num, locked))
+                return false;
         }
         return true;
     }

@@ -8,7 +8,7 @@ for(var key in baseResObject){
     if(ele.heat > 0) fuleRes.push(key);
 }
 
-var miner_key = ["伐木机器","采矿机","抽水机","油井","轨道采集器"];
+var miner_key = ["伐木机","采矿机","抽水机","油井","轨道采集器"];
 
 var building_key = [
     [],
