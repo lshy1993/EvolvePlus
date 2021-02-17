@@ -69,7 +69,22 @@
             </div>
             <button class="buildbox" @click="showhover=1">新建</button>
           </div>
-          <div class="viewbox" v-if="opttype == 3">研究</div>
+          <div class="viewbox" v-if="opttype == 3">
+            <div v-if="player.curTech">
+              <div>正在研究:{{ player.curTech.name }}</div>
+              <div>{{ player.getTechProgress() }}%</div>
+              <button @click="pauseTech()">暂停</button>
+              <label>使用背包</label>
+              <input type="checkbox" v-model="player.curTech.useBag" />
+            </div>
+            <div>变更研究科技</div>
+            <button v-for="ele in player.showTech()" :disabled="!player.isTechOn(ele)" :title="'需要【'+publicTech[ele].prev+'】'" @click="addTech(ele)">
+              <div>{{ ele }}</div>
+              <div>需要：
+                <span v-for="i in 6">{{ block_key[i-1] }}:{{ publicTech[ele].blocks[0] }} </span>
+              </div>
+            </button>
+          </div>
         </div>
         <div class="col" style="width: 30%; height: 100%;">
           <div class="bd" style="height: 70%;">
@@ -88,7 +103,7 @@
       <div v-show="showhover!=0" class="hover" @click="closeHover()">        
         <div class="hoverWrap" v-if="showhover==1" @click.stop>
           <div v-for="k in 4" :key="k" style="display: block;">
-            <button class="build-icon" v-for="index in building_key[k]" :disabled="player.bag[index]==0" @click="addBuild(index)">
+            <button class="build-icon" v-for="index in building_key[k]" :disabled="!player.hasItem(index)" @click="addBuild(index)">
               <div>{{ index }}</div>
               <div>持有：{{ player.bag[index] }}</div>
             </button>

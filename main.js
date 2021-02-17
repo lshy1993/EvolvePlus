@@ -74,7 +74,16 @@ var app = new Vue({
     openCraft(){
       this.showhover = 4;
     },
+    addTech(name){
+      this.player.addTech(name);
+      this.$forceUpdate();
+    },
+    pauseTech(){
+      this.player.pauseTech();
+      this.$forceUpdate();
+    },
     mainLoop(){
+      player.update();
       universe.update();
     }
   }

@@ -102,6 +102,24 @@ var baseResObject = {
     },
     "cpu":{
         type: 1,
+    },
+    "红":{
+        type: 1,
+    },
+    "蓝":{
+        type: 1,
+    },
+    "黄":{
+        type: 1,
+    },
+    "紫":{
+        type: 1,
+    },
+    "绿":{
+        type: 1,
+    },
+    "白":{
+        type: 1,
     }
 }
 
@@ -292,6 +310,20 @@ var publicRecipe = [
         place: 1
     }
 ];
+
+var publicTech = {
+    "基础冶炼":{
+        blocks: [100,0,0,0,0,0],
+        hash: 200
+    },
+    "高级冶炼":{
+        prev: "基础冶炼",
+        blocks: [150,0,0,0,0,0],
+        hash: 200
+    }
+}
+
+var block_key = ["红","蓝","黄","紫","绿","白"];
 
 /** 随机d位字母 */
 function rndChar(d){

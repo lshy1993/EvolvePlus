@@ -1,16 +1,26 @@
 class Player{
     constructor(){
+        /** 背包 */
         this.bag = {};
+        /** 所处星球 */
         this.curPlanet;
+        /** 已经研究的科技 */
+        this.tech = {};
+        /** 手动研究效率 */
+        this.hashSpeed = 100;
+        this.curTech;
         this.init();
     }
 
     init(){
         for(var key in baseResObject){
-            this.bag[key] = 0;
+            this.bag[key] = 100;
         }
         for(var key in buildingObject){
             this.bag[key] = 1;
+        }
+        for(var key in publicTech){
+            this.tech[key] = new Tech(key);
         }
         console.log("player init");
     }
@@ -23,6 +33,40 @@ class Player{
             }
         }
         return d;
+    }
+    hasItem(name){
+        return this.bag[name] > 0;
+    }
+
+    showTech(){
+        let d = [];
+        for(var key in publicTech){
+            if(this.tech[key].isFinish()) continue;
+            if(this.curTech && this.curTech.name == key) continue;
+            d.push(key);
+        }
+        return d;
+    }
+    /** 科技是否已开启 */
+    isTechOn(name){
+        let prev = publicTech[name].prev;
+        if(!prev) return true;
+        return this.tech[prev].isFinish();
+    }
+    /** 当前的进度 */
+    getTechProgress(){
+        if(this.curTech===undefined) return 0;
+        return this.curTech.progress();
+    }
+    /** 开始研究 */
+    addTech(name){
+        console.log("已开启科技"+name);
+        this.curTech = this.tech[name];
+    }
+    /** 暂停研究 */
+    pauseTech(){
+        console.log("已暂停科技"+name);
+        this.curTech = null;
     }
 
     Mine(resource){
@@ -79,6 +123,16 @@ class Player{
         this.bag[item] += 1;
     }
 
+    update(){
+        // 科技更新
+        if(this.curTech && this.curTech.useBag){
+            for(var index in block_key){
+                let key = block_key[index];
+                this.bag[key] -= this.curTech.blocks[index]/100;
+            }
+            this.curTech.cur_hash += 1;
+        }
+    }
 }
 
 /** 宇宙 */
@@ -376,6 +430,29 @@ class Recipe{
         this.outputs = dd.outputs;
         /** 基础消耗时间 */
         this.time = dd.time;
+    }
+}
+/** 科技 */
+class Tech{
+    constructor(name){
+        let tech = publicTech[name];
+        this.name = name;
+        this.blocks = tech.blocks;
+        /** 哈希值 */
+        this.hash = tech.hash;
+        /** 已完成部分 */
+        this.cur_hash = 0;
+        /** 使用背包搓 */
+        this.useBag = false;
+    }
+
+    isFinish(){
+        return this.cur_hash >= this.hash;
+    }
+
+    progress(){
+        let t = this.cur_hash/this.hash*100;
+        return t.toFixed(2);
     }
 }
 
