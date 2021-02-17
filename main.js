@@ -13,7 +13,9 @@ var app = new Vue({
     stellar_k: 0,
     planet_k: 0,
     curPowerPlant: undefined,
-    curMachine: undefined
+    curMachine: undefined,
+    selectRes: undefined,
+    moveNum: 100
   },
   created(){
     // TODO: load
@@ -28,7 +30,7 @@ var app = new Vue({
     planetName(){
       if(this.curPlanet) return this.curPlanet.name;
       else return "";
-    }
+    },
   },
   methods:{
     movePlanet(){
@@ -74,6 +76,10 @@ var app = new Vue({
     openCraft(){
       this.showhover = 4;
     },
+    getMachineRecipe(){
+      let d = this.curMachine.machinetype;
+      return supportRecipe[d];
+    },
     addTech(name){
       this.player.addTech(name);
       this.$forceUpdate();
@@ -81,6 +87,28 @@ var app = new Vue({
     pauseTech(){
       this.player.pauseTech();
       this.$forceUpdate();
+    },
+    openRes(name){
+      this.showhover = 5;
+      this.selectRes = name;
+    },
+    moveToBag(all){
+      let key = this.selectRes;
+      let num = Math.min(this.moveNum,this.curPlanet.baseRes[key]);
+      if(all) num = this.curPlanet.baseRes[key];
+      this.player.bag[key] += num;
+      this.curPlanet.baseRes[key] -= num;
+    },
+    moveToPlanet(all){
+      let key = this.selectRes;
+      let num = Math.min(this.moveNum,this.player.bag[key]);
+      if(all) num = this.player.bag[key];
+      this.player.bag[key] -= num;
+      this.curPlanet.baseRes[key] += num;
+    },
+    machineHint(recipe){
+      if(recipe.type==Types.Recipe.CannotHandmade) return '只能在'+machine_key[recipe.place]+'合成';
+      return "";
     },
     mainLoop(){
       player.update();

@@ -9,6 +9,7 @@ for(var key in baseResObject){
 }
 
 var miner_key = ["伐木机","采矿机","抽水机","油井","轨道采集器"];
+var machine_key = ["合成台","熔炉","炼油厂","化工厂"];
 
 var building_key = [
     [],
@@ -21,8 +22,8 @@ for(var key in buildingObject){
     let ele = buildingObject[key];
     building_key[ele.type-1].push(key);
 }
-
-var block_key = ["红","蓝","黄","紫","绿","白"];
+// console.log(building_key);
+// var block_key = ["红","蓝","黄","紫","绿","白"];
 
 /** 随机d位字母 */
 function rndChar(d){
@@ -55,7 +56,7 @@ function simNumber(x){
     if (d >= 9) return (x/(10**9)).toFixed(1)+"G";
     if (d >= 6) return (x/(10**6)).toFixed(1)+"M";
     if (d >= 4) return (x/(10**3)).toFixed(1)+"K";
-    return x;
+    return Math.floor(x);
 }
 
 // 宇宙

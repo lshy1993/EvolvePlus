@@ -34,7 +34,24 @@ header{
     margin-right: 2px;
     margin-bottom: 2px;
     width: 120px;
-    height: 100px;
+    height: 140px;
+    vertical-align: top;
+}
+.fuel-icon{
+    display: inline-block;
+    margin-right: 2px;
+    margin-bottom: 2px;
+    /* width: 80px; */
+    height: 60px;
+    vertical-align: top;
+}
+.recipe-icon{
+    display: inline-block;
+    margin-right: 2px;
+    margin-bottom: 2px;
+    /* width: 80px; */
+    height: 80px;
+    vertical-align: top;
 }
 
 .viewbox{
@@ -48,8 +65,8 @@ header{
     float: left;
     margin: 2px;
     padding: 2px;
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
 }
 
 .buildbox{
@@ -60,8 +77,8 @@ header{
     padding: 2px;
     /* margin-right: 2px;
     margin-bottom: 2px; */
-    width: 150px;
-    height: 200px;    
+    width: 200px;
+    height: 140px;
     vertical-align: top;
 }
 

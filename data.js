@@ -60,6 +60,7 @@ baseResObject["白科技包"] = {type: Types.ResourceType.Compound, minetype: Ty
 var publicRecipe = {};
 /*
 type:是否可以手搓
+place:合成建筑
 inputs:输入产物字典数组{id, num}
 outputs:输出产物字典数组{id, num}
 time:基础合成时间
@@ -68,118 +69,142 @@ Types.Recipe = {
     CanHandmade: 0,
     CannotHandmade: 1
 };
+Types.Machine = {
+    Furnace: 0,
+    Crafter: 1,
+    Refinery: 2,
+    ChemicalPlant:3
+}
 publicRecipe["炼铁"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Furnace,
     inputs: [{id:"铁矿",num:1}],
     outputs: [{id:"铁锭",num:1}],
     time: 1,
 };
 publicRecipe["炼钢"] = {
     type: Types.Recipe.CannotHandmade,
+    place: Types.Machine.Furnace,
     inputs: [{id:"铁锭",num:3}],
     outputs: [{id:"钢",num:1}],
     time: 3,
 };
 publicRecipe["炼铜"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Furnace,
     inputs: [{id:"铜矿",num:1}],
     outputs: [{id:"铜锭",num:1}],
     time: 1,
 };
 publicRecipe["炼石"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Furnace,
     inputs: [{id:"石料",num:1}],
     outputs: [{id:"石材",num:1}],
     time: 1,
 };
 publicRecipe["炼钛"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Furnace,
     inputs: [{id:"钛矿",num:1}],
     outputs: [{id:"钛锭",num:1}],
     time: 2,
 };
 publicRecipe["硫酸合成"] = {
     type: Types.Recipe.CannotHandmade,
+    place: Types.Machine.ChemicalPlant,
     inputs: [{id:"石料",num:2},{id:"精炼油",num:1},{id:"水",num:1}],
     outputs: [{id:"硫酸",num:5}],
     time: 15,
 };
 publicRecipe["原油裂解"] = {
     type: Types.Recipe.CannotHandmade,
+    place: Types.Machine.Refinery,
     inputs: [{id:"原油",num:1}],
     outputs: [{id:"精炼油",num:0.7},{id:"氢气",num:0.1}],
     time: 3
 };
 publicRecipe["煤炭加工"] = {
     type: Types.Recipe.Canhandmade,
+    place: Types.Machine.Crafter,
     inputs: [{id:"煤",num:3}],
     outputs: [{id:"蜂窝煤",num:2}],
     time: 2
 };
 publicRecipe["电路板"] = {
     type: Types.Recipe.Canhandmade,
+    place: Types.Machine.Crafter,
     inputs: [{id:"铁锭",num:1},{id:"铜锭",num:2}],
     outputs: [{id:"电路板",num:2}],
     time: 1
 };
 publicRecipe["电池"] = {
     type: Types.Recipe.Canhandmade,
+    place: Types.Machine.ChemicalPlant,
     inputs: [{id:"铁锭",num:1},{id:"铜锭",num:1},{id:"硫酸",num:10}],
     outputs: [{id:"电池",num:1}],
     time: 15
 };
 publicRecipe["炼硅"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Furnace,
     inputs: [{id:"硅矿",num:1}],
     outputs: [{id:"硅片",num:1}],
     time: 2,
 };
 publicRecipe["沙里淘硅"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Furnace,
     inputs: [{id:"石料",num:5}],
     outputs: [{id:"硅片",num:1}],
     time: 20,
 };
 //发电标记
-publicRecipe["核能发电"] = {
-    inputs: [{id:"铀燃料",num:1}],
-}
-publicRecipe["核聚变发电"] = {
-    inputs: [{id:"氘燃料",num:1}],
-}
+// publicRecipe["核能发电"] = {
+//     inputs: [{id:"铀燃料",num:1}],
+// }
+// publicRecipe["核聚变发电"] = {
+//     inputs: [{id:"氘燃料",num:1}],
+// }
 //machines
 publicRecipe["伐木机"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Crafter,
     inputs: [{id:"石料",num:5}],
     outputs: [{id:"伐木机",num:1}],
     time: 1,
 };
 publicRecipe["采矿机"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Crafter,
     inputs: [{id:"铁锭",num:5}, {id:"电路板",num:5}],
     outputs: [{id:"采矿机",num:1}],
     time: 1,
 };
 publicRecipe["抽水机"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Crafter,
     inputs: [{id:"铁锭",num:5}, {id:"电路板",num:5}],
     outputs: [{id:"抽水机",num:1}],
     time: 1,
 };
 publicRecipe["油井"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Crafter,
     inputs: [{id:"钢",num:5}, {id:"石材",num:5}, {id:"电路板",num:5}],
     outputs: [{id:"油井",num:1}],
     time: 1,
 };
 publicRecipe["风力发电机"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Crafter,
     inputs: [{id:"铁锭",num:5}, {id:"电路板",num:5}],
     outputs: [{id:"风力发电机",num:1}],
     time: 1,
 };
 publicRecipe["太阳能板"] = {
     type: Types.Recipe.CanHandmade,
+    place: Types.Machine.Crafter,
     inputs: [{id:"铁锭",num:5}, {id:"电路板",num:5},{id:"硅片", num:5}],
     outputs: [{id:"太阳能板",num:1}],
     time: 1,
@@ -187,10 +212,14 @@ publicRecipe["太阳能板"] = {
 
 var initialRecipe=["炼铁","炼铜","炼石","炼钛","煤炭加工","电路板","沙里淘硅","伐木机","采矿机","抽水机","油井","风力发电机","太阳能板"];
 
+var supportRecipe = [[],[],[],[]];
 var item2recipe={};
 for(var key in publicRecipe)
 {
-    var item = publicRecipe[key].outputs;
+    let ele = publicRecipe[key];
+    console.log(ele.place);
+    supportRecipe[ele.place].push(key);
+    var item = ele.outputs;
     if(item != undefined && item.length > 0)
     {
         for(var it of item)
@@ -202,6 +231,7 @@ for(var key in publicRecipe)
         }
     }
 }
+console.log(supportRecipe);
 
 //科技
 var publicTech = {};
@@ -224,114 +254,132 @@ publicTech["高级冶炼"] = {
 
 //建筑
 var buildingObject = {};
+Types.Build = {
+    Gather: 1,
+    PowerPlant: 2,
+    Facotry: 3,
+    Tech: 4,
+    Transportation: 5
+}
 /*
-type: 放在第几行
+type: 1采集 2发电 3合成 4科技 5物流
 recipes: 支持的配方
 power: 生产电力，消耗则为负
+needfuel: 发电设备
 idlepower: 输入原料不足时，待机电力，消耗一样为负
 update: 下一级升级
 speed: 速度加成
 */
 buildingObject["伐木机"] = {
-    type: 1,
+    type: Types.Build.Gather,
     power: -4.2e5,
     idlepower: -1.5e4,
     speed: 1
 };
 buildingObject["采矿机"] = {
-    type: 1,
+    type: Types.Build.Gather,
     power: -4.2e5,
     idlepower: -1.5e4,
     speed: 1
 };
 buildingObject["抽水机"] = {
-    type: 1,
+    type: Types.Build.Gather,
     power: -4.2e5,
     idlepower: -1.5e4,
     speed: 1
 };
 buildingObject["油井"] = {
-    type: 1,
+    type: Types.Build.Gather,
     power: -1e6,
     idlepower: -2e4,
     speed: 1
 };
 buildingObject["轨道采集器"] = {
-    type: 1,
+    type: Types.Build.Gather,
     power: -1e7,
     idlepower: -2e6,
     speed: 1
 };
 
 buildingObject["风力发电机"] = {
-    type: 2,
-    power: 4e5
+    type: Types.Build.PowerPlant,
+    power: 4e5,
+    powertype: 0
 };
 buildingObject["太阳能板"] = {
-    type: 2,
-    power: 1e6
+    type: Types.Build.PowerPlant,
+    power: 1e6,
+    powertype: 1
 };
 buildingObject["火力发电机"] = {
-    type: 2,
-    power: 1e6
+    type: Types.Build.PowerPlant,
+    power: 1e6,
+    powertype: 2
 };
 buildingObject["核能发电机"] = {
-    type: 2,
+    type: Types.Build.PowerPlant,
     power: 1e6,
+    powertype: 3,
     recipes: ["核能发电","核聚变发电"]
 };
 
 buildingObject["合成台"] = {
-    type: 3,
+    type: Types.Build.Facotry,
     power: -4e5,
     idlepower: -2e4,
+    machinetype: Types.Machine.Crafter,
     update: "合成台MK2",
     speed: 1
 };
 buildingObject["合成台MK2"] = {
-    type: 3,
+    type: Types.Build.Facotry,
     power: -8e5,
     idlepower: -3e4,
+    machinetype: Types.Machine.Crafter,
     update: "合成台MK3",
     speed: 1.5
 };
 buildingObject["合成台MK3"] = {
-    type: 3,
+    type: Types.Build.Facotry,
     power: -1.2e6,
     idlepower: -3e4,
+    machinetype: Types.Machine.Crafter,
     speed: 2
 };
 
 buildingObject["熔炉"] = {
-    type: 3,
+    type: Types.Build.Facotry,
     power: -8e5,
     idlepower: -2e4,
+    machinetype: Types.Machine.Furnace,
     speed: 1
 };
 
 buildingObject["炼油厂"] = {
-    type: 3,
+    type: Types.Build.Facotry,
     power: -8e5,
     idlepower: -2e4,
+    machinetype: Types.Machine.Refinery,
     speed: 1
 };
 
 buildingObject["化工厂"] = {
-    type: 3,
+    type: Types.Build.Facotry,
     power: -8e5,
     idlepower: -2e4,
+    machinetype: Types.Machine.ChemicalPlant,
     speed: 1
 };
 
 buildingObject["科技中心"] = {
-    type: 3,
+    type: Types.Build.Tech,
     power: -1e6,
     idlepower: -1e4,
     speed: 1
 };
 
 buildingObject["星际物流中心"] = {
-    type: 3,
+    type: Types.Build.Transportation,
     power: -1e7,
     idlepower: -2e4,
     speed: 1

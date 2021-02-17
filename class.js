@@ -19,7 +19,7 @@ class Player{
             this.bag[key] = 100;
         }
         for(var key in buildingObject){
-            this.bag[key] = 1;
+            this.bag[key] = 2;
         }
         for(var key in publicTech){
             this.tech[key] = new Tech(key);
@@ -61,7 +61,7 @@ class Player{
     /** 当前的进度 */
     getTechProgress(){
         if(this.curTech===undefined) return 0;
-        return this.curTech.progress();
+        return this.curTech.progress().toFixed(2);
     }
     /** 开始研究 */
     addTech(name){
@@ -83,11 +83,15 @@ class Player{
     }
 
     Craft(recipe){
-        for(var ele of recipe.inputs){
-            this.bag[ele.id] -= ele.num;
-        }
-        for(var ele of recipe.outputs){
-            this.bag[ele.id] += ele.num;
+        if(this.canCraft(recipe)){
+            for(var ele of recipe.inputs){
+                this.bag[ele.id] -= ele.num;
+            }
+            for(var ele of recipe.outputs){
+                this.bag[ele.id] += ele.num;
+            }
+        }else{
+            alert("原料不足");
         }
     }
 
@@ -131,18 +135,13 @@ class Player{
         return true;
     }
 
-    SetAutoMine(resource){
-        if(resource.isAuto) this.RemoveMachine(resource);
-        else this.SetMachine(resource);
-    }
-
-    SetMachine(resource){
+    SetMiner(resource){
         let resname = resource.name;
         let key = baseResObject[resname].minetype;
         let item = miner_key[key-1];
         if(this.bag[item] > 0){
             console.log("已设置"+item);
-            resource.isAuto = true;
+            resource.isAuto += 1;
             // 负数代表消耗
             resource.power = buildingObject[item].power;
             this.bag[item] -= 1;
@@ -151,24 +150,44 @@ class Player{
         }
     }
 
-    RemoveMachine(resource){
+    RemoveMiner(resource){
         let resname = resource.name;
         let key = baseResObject[resname].minetype;
         let item = miner_key[key-1];
         console.log("已移除"+item);
-        resource.isAuto = false;
-        resource.power = 0;
+        resource.isAuto -= 1;
+        // resource.power = 0;
         this.bag[item] += 1;
+    }
+
+    checkTechEmpty(){
+        for(var key of this.curTech.inputs){
+            if (this.bag[key] == 0) return true;
+        }
+        return false;
     }
 
     update(){
         // 科技更新
         if(this.curTech && this.curTech.useBag){
-            for(var index in block_key){
-                let key = block_key[index];
-                this.bag[key] -= this.curTech.blocks[index]/100;
+            if(this.checkTechEmpty()){
+                console.log('bag empty');
             }
-            this.curTech.cur_hash += 1;
+            else if(this.curTech.cur_t <= 0){
+                // 先消耗瓶子
+                for(var key of this.curTech.inputs){
+                    this.bag[key] -= 1;
+                }
+                this.curTech.cur_t = this.curTech.time;
+                // 增加
+                this.curTech.cur_hash += 1;
+                if(this.curTech.cur_hash==this.curTech.hash){
+                    console.log("科技完成");
+                    this.curTech = null;
+                }                
+            }else{
+                this.curTech.cur_t -= 1;
+            }
         }
     }
 }
@@ -281,8 +300,7 @@ class Planet{
     showRes(){
         let d = {};
         for(var key in this.baseRes){
-            // if(this.baseRes[key]>0) 
-            d[key] = simNumber( Math.floor(this.baseRes[key]));
+            if(this.baseRes[key]>0) d[key] = simNumber(Math.floor(this.baseRes[key]));
         }
         return d;
     }
@@ -296,8 +314,14 @@ class Planet{
         }
         return d;
     }
-    /** 电量负荷百分比 */
     getPowerLoad(){
+        return simNumber(this.power_load);
+    }
+    getPowerAll(){
+        return simNumber(this.power_all);
+    }
+    /** 电量负荷百分比 */
+    getPowerRate(){
         let d = 0;
         if(this.power_all != 0) d = this.power_load/this.power_all*100;
         // let d = Math.min(this.power_load/this.power_all,1)*100;
@@ -309,18 +333,28 @@ class Planet{
         let powerall = 0;
         for(var ele of this.building){
             // console.log(ele);
-            let out = ele.power;
             if(ele.type == 2){
-                // 发电设施                
+                let out = ele.power;
+                // 发电设施
                 if(ele.powertype >= 2){
                     // 需要燃料
-                    if(ele.fuel===undefined) out = 0;
-                    else if(this.baseRes[ele.fuel] == 0) out = 0;
+                    if(!ele.fuel) out = 0;
+                    if(ele.restheat <= 0) out = 0;
+                    // else if(this.baseRes[ele.fuel] == 0) out = 0;
                 }
                 powerall += out;
             }else{
                 // 其他设施消耗电量
-                powerload += -out;
+                if(ele.type == 1){
+                    ele.loadpower = (this.checkResFull(ele)||this.checkMineEmpty(ele)) ? ele.idlepower : ele.power;
+                }
+                else if(ele.type == 3){
+                    ele.loadpower = ele.recipe && !this.checkMachineEmpty(ele) && !this.checkMachineFull(ele) ? ele.power : ele.idlepower;
+                }
+                else if(ele.type == 4){
+                    ele.loadpower = player.curTech && !this.checkTechEmpty() ? ele.power : ele.idlepower;
+                }
+                powerload += -ele.loadpower;
             }
         }
         for(var ele of this.mine){
@@ -332,28 +366,54 @@ class Planet{
 
     /** 增加新的建筑 */
     Build(index){
-        if(buildingObject[index].type != 2) this.building.push(new Machine(index));
-        else this.building.push(new PowerPlant(index));        
+        let type = buildingObject[index].type;
+        if(type == 2) this.building.push(new PowerPlant(index));
+        else if(type == 4) this.building.push(new TechCenter(index));
+        else this.building.push(new Machine(index));
     }
 
     removeBuild(index){
-        this.building.splice(index);
+        this.building.splice(index,1);
+        // TODO:返还inputs等
     }
 
-    /** 检测资源运行状态 */
-    checkMine(mine){
-        if(this.power_load > this.power_all) return "电";
-        if(mine.curNum==0) return "空";
-        if(this.baseRes[mine.name] >= 1000)return "满";
-        return "";
+    /** 检测电力状态 */
+    checkPower(){
+        return this.power_load > this.power_all;
     }
-    /** 检测建筑运行状态 */
-    checkMachine(machine){
-        if(this.power_load > this.power_all) return "电";
+    checkMinerEmpty(mine){
+        return mine.curNum == 0;
     }
-    /** 检测发电站 */
-    checkPlant(plant){
-        if(this.baseRes[plant.fuel] < 1) return "料";
+    checkMinerFull(mine){
+        let name = mine.name;
+        return this.baseRes[name] >= 1000;
+    }
+    /** 检测合成缺料 */
+    checkMachineEmpty(machine){
+        if(!machine.recipe) return false;
+        for(var ele of machine.recipe.inputs){
+            if(this.baseRes[ele.id]<1) return true;
+        }
+        return false;
+    }
+    checkMachineFull(machine){
+        if(!machine.recipe) return false;
+        for(var ele of machine.recipe.outputs){
+            if(this.baseRes[ele.id]>1000) return true;
+        }
+        return false;
+    }
+    checkTechEmpty(){
+        if(!player.curTech) return false;
+        for(var key of player.curTech.inputs){
+            if(this.baseRes[key]<1) return true;
+        }
+        return false;
+    }
+    /** 检测发电站原料 */
+    checkPlantEmpty(plant){
+        if(plant.fuel) return this.baseRes[plant.fuel] < 1;
+        return true;
     }
     update(){
         if(this.building.length == 0 && this.mine.filter((x)=>x.isAuto).length == 0) return;
@@ -369,26 +429,36 @@ class Planet{
         for(var ele of this.building){
             if(ele.type == 1){
                 this.genpower(ele);
-            }else{
-                this.consume(ele);
+            }else if(ele.type == 3){
+                this.consume(ele, powerrate);
+            }else if(ele.type == 4){
+                if(player.curTech && !player.curTech.useBag) this.tech(powerrate);
             }
         }
     }
 
     genpower(ele){
         // TODO: 动态计算负载和燃料热值
-        if(ele.powertype > 2) this.baseRes[ele.fuel] -= 1;
+        if(ele.powertype >= 2){
+            console.log(ele.fuel + ele.restheat);
+            if(ele.restheat <= 0){
+                this.baseRes[ele.fuel] -= 1;
+                ele.restheat = baseResObject[ele.fuel].heat;
+            }else{
+                ele.restheat -= ele.power;
+            }
+        }
     }
 
-    consume(ele){
-        if(ele.t < ele.time){
-            // 积累时间
-            ele.t += 1*powerrate;
-            return;
-        }
-        ele.t -= ele.time;
+    consume(ele,powerrate){
         let recipe = ele.recipe;
-        if(recipe){
+        if(recipe && !this.checkMachineEmpty(ele) && !this.checkMachineFull(ele)){
+            if(ele.t < recipe.time){
+                // 积累时间
+                ele.t += 1*powerrate;
+                return;
+            }
+            ele.t = 0;
             // 产物消耗
             for(var ele of recipe.inputs){
                 this.baseRes[ele.id] -= ele.num;
@@ -400,6 +470,25 @@ class Planet{
         }
     }
 
+    tech(powerrate){
+        if(this.checkTechEmpty()){
+            console.log('星球科技包不足');
+        }
+        else if(player.curTech.cur_t <= 0){
+            for(var key of player.curTech.inputs){
+                this.baseRes[key] -= 1;
+            }
+            player.curTech.cur_t = player.curTech.time;
+            // 增加进度
+            player.curTech.cur_hash += 1;
+            if(player.curTech.cur_hash >= player.curTech.hash){
+                console.log("科技完成");
+                player.curTech = null;
+            }
+        }else{
+            player.curTech.cur_t -= 1*powerrate;
+        }
+    }
 }
 
 /** 资源 */
@@ -441,15 +530,15 @@ class Mine extends Resources{
         this.mineType = obj.minetype;
         // 默认一致
         this.power = 0;
-        /** 是否已经在自动采集 */
+        /** 是否已经在自动采集 0无 1以上为采矿机数*/
         //应当像进化一样按采矿机数目来，例如几个木匠常、几个采石场
-        this.isAuto = false;
+        this.isAuto = 0;
         /** 默认采集速度 */
         this.mineSpd = 1;
     }
     /** 真实产出 */
     realProduct(rate){
-        console.log(rate);
+        // console.log(rate);
         let out = this.mineSpd * rate;
         if(this.curNum < this.mineSpd){
             out = this.curNum;            
@@ -477,9 +566,13 @@ class Tech{
     constructor(name){
         let tech = publicTech[name];
         this.name = name;
-        this.blocks = tech.blocks;
-        /** 哈希值 */
-        this.hash = tech.hash;
+        this.inputs = tech.inputs;
+        /** 单步消耗时间 */
+        this.time = tech.time;
+        /** 累计时间 */
+        this.cur_t = 0;
+        /** 总哈希值 */
+        this.hash = tech.count;
         /** 已完成部分 */
         this.cur_hash = 0;
         /** 使用背包搓 */
@@ -492,7 +585,7 @@ class Tech{
 
     progress(){
         let t = this.cur_hash/this.hash*100;
-        return t.toFixed(2);
+        return t;
     }
 }
 
@@ -511,6 +604,13 @@ class Building{
         this.power = dd.power;
         /** 待机功率，为负，表示消耗 */
         this.idlepower = dd.idlepower;
+        /** 实际电量 */
+        this.loadpower = this.idlepower;
+    }
+
+    isIdle(){
+        if (this.type == Types.Build.PowerPlant) return false;
+        return this.loadpower == this.idlepower;
     }
 }
 
@@ -520,7 +620,7 @@ class Machine extends Building{
         super(name);
         let dd = buildingObject[name];
         /** 支持的配方 */
-        this.support_recipes = dd.recipes;
+        this.machinetype = dd.machinetype;
         /** 当前运行配方 */
         this.recipe;
         /** 距离上次生产的时间 */
@@ -532,6 +632,11 @@ class Machine extends Building{
         this.recipe = recipe;
         this.t = 0;
     }
+
+    progress(){
+        let t = this.t/this.recipe.time*100;
+        return t.toFixed(2);
+    }
 }
 
 /** 电力设施 */
@@ -540,16 +645,30 @@ class PowerPlant extends Building{
         super(name);
         let dd = buildingObject[name];
         /** 发电类型 0风 1太阳 2火 3核*/
-        this.powertype = dd.ptype;
+        this.powertype = dd.powertype;
         /** 使用的燃料 */
-        this.fuel;
+        this.fuel = undefined;
+        /** 剩余热值 */
+        this.restheat = 0;
     }
 
     setFuel(fuel){
         console.log("燃料已设置");
         this.fuel = fuel;
     }
+
+    progress(){
+        let t = this.restheat/baseResObject[this.fuel].heat*100;
+        return t.toFixed(2);
+    }
 }
+
+class TechCenter extends Building{
+    constructor(name) {
+        super(name);
+    }
+}
+
 
 /** 科技 */
 class Technology{

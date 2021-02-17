@@ -20,13 +20,11 @@
       <header class="bd">
         <div>{{ stellarName }}星系-{{ planetName }}星
           <button @click="hiddentop=!hiddentop">资源总览</button>
-          <div>电网：{{ curPlanet.getPowerLoad() }}% 总负载：{{curPlanet.power_load}} 总发电：{{curPlanet.power_all}}</div>
+          <div>电网负荷：{{ curPlanet.getPowerRate() }}% 总消耗：{{curPlanet.getPowerLoad()}}W 总发电：{{curPlanet.getPowerAll()}}W</div>
         </div>
         <transition name="fade">
           <div v-show="!hiddentop">
-            <div v-for="(ele,index) in curPlanet.showRes()" class="res-icon">
-              {{ index }}: {{ ele }}
-            </div>
+            <button v-for="(ele,index) in curPlanet.showRes()" class="res-icon" @click="openRes(index)">{{ index }}: {{ ele }}</button>
           </div>
         </transition>
       </header>
@@ -41,29 +39,49 @@
           <div class="viewbox" v-if="opttype == 1">
             <div class="bd minebox" v-for="(ele,index) in curPlanet.mine">
               <div>{{ ele.name }}{{ele.isAuto?"【自】":""}}</div>
-              <div v-if="ele.isAuto" class="warning">{{curPlanet.checkMine(ele)}}</div>
+              <div v-if="ele.isAuto" class="warning">
+                <span v-if="curPlanet.checkPower()" title="电量不足">电</span>
+                <span v-if="curPlanet.checkMinerEmpty(ele)" title="原料不足">空</span>
+                <span v-if="curPlanet.checkMinerFull(ele)" title="产物堆积">满</span>
+              </div>
               <div>{{ simNumber(ele.curNum) }}</div>
               <button v-if="ele.mineType<=Types.MineType.Mining" @click="player.Mine(ele)">手动采集</button>
-              <button v-if="ele.mineType>=Types.MineType.Lumbering" @click="player.SetAutoMine(ele)">{{ ele.isAuto?"拆除":"设置"}}{{ miner_key[ele.mineType-1] }}</button>
+              <div v-if="ele.mineType>=Types.MineType.Lumbering">
+                <div>{{ miner_key[ele.mineType-1] }}:{{ ele.isAuto }}</div>
+                <button @click="player.SetMiner(ele)">设置</button>
+                <button v-if="ele.isAuto>0" @click="player.RemoveMiner(ele)">拆除</button>
+              </div>
             </div>
           </div>
           <div class="viewbox" v-if="opttype == 2">
             <div class="bd buildbox" v-for="(ele,index) in curPlanet.building">
-              <div>#{{index}} {{ ele.name }}</div>
+              <div>#{{index}} {{ ele.name }}<span v-if="ele.isIdle()">【待机】</span></div>
               <div v-if="ele.type==2">
-                <div>发电量：{{ ele.power }}</div>
+                <div>发电量：{{ simNumber(ele.power) }}W</div>
                 <div v-if="ele.powertype > 1">
-                  <div v-if="ele.fuel">{{ ele.fuel }}</div>
+                  <div v-if="ele.fuel">{{ ele.fuel }}<span>{{ ele.progress() }}</span></div>
                   <button @click="openFuel(ele)">选择燃料</button>
-                  <div class="warning">{{ curPlanet.checkPlant(ele) }}</div>
+                  <div class="warning">
+                    <span v-if="curPlanet.checkPlantEmpty(ele)" title="燃料不足">空</span>
+                  </div>
                 </div>
               </div>
-              <div v-if="ele.type == 3">
-                <div>额定功率：{{ -ele.power }}</div>
-                <div>待机功率: {{ -ele.idlepower }}</div>
+              <div v-if="ele.type==3">
+                <div>当前功率: {{ simNumber(-ele.loadpower) }}W</div>
+                <div v-if="ele.recipe">生产：{{ ele.recipe.outputs[0].id }}<span>{{ ele.progress() }}%</span></div>
                 <button @click="openRecipe(ele)">选择配方</button>
-                <div v-if="ele.recipe">{{ ele.recipe.name }}</div>
-                <div class="warning">{{ curPlanet.checkMachine(ele) }}</div>
+                <div class="warning">
+                  <span v-if="curPlanet.checkPower()" title="电量不足">电</span>
+                  <span v-if="curPlanet.checkMachineEmpty(ele)" title="原料不足">空</span>
+                  <span v-if="curPlanet.checkMachineFull(ele)" title="产物堆积">满</span>
+                </div>
+              </div>
+              <div v-if="ele.type==4">
+                <div>当前功率: {{ simNumber(-ele.loadpower) }}W</div>
+                <div class="warning">
+                  <span v-if="curPlanet.checkPower()" title="电量不足">电</span>
+                  <span v-if="curPlanet.checkTechEmpty()" title="原料不足">空</span>
+                </div>
               </div>
               <button v-if="ele.update">升级</button>
               <button @click="removeBuild(ele.name,index)">拆除</button>
@@ -80,7 +98,7 @@
             </div>
             <div>变更研究科技</div>
             <button v-for="ele in player.showTech()" :disabled="!player.isTechOn(ele)" :title="'需要【'+publicTech[ele].prev+'】'" @click="addTech(ele)">
-              <div>{{ ele }}</div>
+              <div>{{ ele }}<span v-if="player.tech[ele].progress()>0">{{ player.tech[ele].progress().toFixed(0) }}%</span></div>
               <div>需要：
                 <span v-for="item in publicTech[ele].inputs">{{ item }}:{{ publicTech[ele].count }} </span>
               </div>
@@ -91,9 +109,8 @@
           <div class="bd" style="height: 70%;">
             <!-- <button @click="bagtype=1">背包</button> -->
             <button @click="openCraft()">打开合成</button>
-            <div>背包</div>
-            <div v-for="(ele,index) in player.showBag()" class="res-icon">
-              {{ index }}: {{ ele }}
+            <div style="overflow-y: auto;">
+              <button v-for="(ele,index) in player.showBag()" class="res-icon" @click="openRes(index)">{{ index }}: {{ ele }}</button>
             </div>
             <div>合成队列</div>
           </div>
@@ -103,25 +120,49 @@
       <div>{{ message }}</div>
       <div v-show="showhover!=0" class="hover" @click="closeHover()">        
         <div class="hoverWrap" v-if="showhover==1" @click.stop>
-          <div v-for="k in 4" :key="k" style="display: block;">
+          <div v-for="k in 4" :key="k" style="display: block;line-height: 140px;">
             <button class="build-icon" v-for="index in building_key[k]" :disabled="!player.hasItem(index)" @click="addBuild(index)">
               <div>{{ index }}</div>
+              <div v-if="buildingObject[index].type==2">
+                <div>发电量：{{ simNumber(buildingObject[index].power) }}W</div>
+              </div>
+              <div v-if="buildingObject[index].type!=2">
+                <div>额定功率: {{ simNumber(-buildingObject[index].power) }}W</div>
+                <div>待机功率: {{ simNumber(-buildingObject[index].idlepower) }}W</div>
+              </div>
               <div>持有：{{ player.bag[index] }}</div>
             </button>
           </div>
         </div>
         <div class="hoverWrap" v-if="showhover==2" @click.stop>
-          <button class="build-icon" v-for="index in fuleRes" @click="setFuel(index)">
+          <button class="fuel-icon" v-for="index in fuleRes" @click="setFuel(index)">
             <div>{{ index }}</div>
-            <div>热值：{{ baseResObject[index].heat }}</div>
+            <div>热值：{{ simNumber(baseResObject[index].heat) }}J</div>
           </button>
         </div>
-        <div class="hoverWrap" v-if="showhover>=3" @click.stop>
-          <button class="build-icon" v-for="recipe in publicRecipe" :disabled="!player.canCraft(recipe)" @click="setRecipe(recipe)">
+        <div class="hoverWrap" v-if="showhover==3" @click.stop>
+          <button class="recipe-icon" v-for="name in getMachineRecipe()" @click="setRecipe(publicRecipe[name])">
+            <span v-for="(ele) in publicRecipe[name].inputs">{{ ele.num }}{{ ele.id }}</span>
+            <div>↓</div>
+            <span v-for="(ele) in publicRecipe[name].outputs">{{ ele.num }}{{ ele.id }}</span>
+          </button>
+        </div>
+        <div class="hoverWrap" v-if="showhover==4" @click.stop>
+          <button class="recipe-icon" v-for="recipe in publicRecipe" :disabled="recipe.type==Types.Recipe.CannotHandmade" :title="machineHint(recipe)" @click="setRecipe(recipe)">
             <span v-for="(ele) in recipe.inputs">{{ ele.num }}{{ ele.id }}</span>
             <div>↓</div>
             <span v-for="(ele) in recipe.outputs">{{ ele.num }}{{ ele.id }}</span>
           </button>
+        </div>
+        <div class="hoverWrap" v-if="showhover==5" @click.stop>
+          <div>{{ selectRes }}</div>
+          <span>星球：{{ simNumber(curPlanet.baseRes[selectRes]) }}</span>
+          <button @click="moveToBag(true)">全部拿到背包</button>
+          <button @click="moveToBag(false)">拿到背包</button>
+          <input type="number" v-model="moveNum">
+          <button @click="moveToPlanet(true)">存到星球</button>
+          <button @click="moveToPlanet(false)">全部存到星球</button>
+          <span>背包：{{ player.bag[selectRes] }}</span>
         </div>
         <button @click="closeHover()">关闭</button>
       </div>
