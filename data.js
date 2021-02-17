@@ -193,7 +193,7 @@ for(var key in publicRecipe)
     var item = publicRecipe[key].outputs;
     if(item != undefined && item.length > 0)
     {
-        for(var it of items)
+        for(var it of item)
         {
             var id = it.id;
             if(item2recipe[id] == undefined)
