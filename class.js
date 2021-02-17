@@ -399,10 +399,12 @@ class Mine extends Resources{
         /** 剩余数目 */
         this.curNum = Math.ceil(Math.random()*(10**d));
         /** 自动采集所需机器类型 0不可自动采集 1采矿 2抽水*/
+        //这个我觉得可以通过machine设置，比如某个machine支持采集铁、铜、等等
         this.mineType = obj.minetype;
         // 默认一致
         this.power = 0;
         /** 是否已经在自动采集 */
+        //应当像进化一样按采矿机数目来，例如几个木匠常、几个采石场
         this.isAuto = false;
         /** 默认采集速度 */
         this.mineSpd = 1;
@@ -424,9 +426,9 @@ class Recipe{
     constructor(tag, inputs, outputs, time){
         /** 名称标记，暂时用于识别 */
         this.tag = tag;
-        /** 输入产物字典 */
+        /** 输入产物字典数组 */
         this.inputs = dd.inputs;
-        /** 输出产物字典 */
+        /** 输出产物字典数组 */
         this.outputs = dd.outputs;
         /** 基础消耗时间 */
         this.time = dd.time;
@@ -467,9 +469,9 @@ class Building{
         this.type = dd.type;
         /** 是否能升级 */
         this.update = dd.update;
-        /** 消耗/生产额定功率 */
+        /** 消耗/生产额定功率，生产为正，消耗为负 */
         this.power = dd.power;
-        /** 待机功率 */
+        /** 待机功率，为负，表示消耗 */
         this.idlepower = dd.idlepower;
     }
 }
@@ -508,5 +510,45 @@ class PowerPlant extends Building{
     setFuel(fuel){
         console.log("燃料已设置");
         this.fuel = fuel;
+    }
+}
+
+/** 科技 */
+class Technology{
+    constructor(name, recipes, machines, modifiers)
+    {
+        /** 名称 */
+        this.name = name;
+        /** 解锁研究配方 */
+        this.recipes = recipes;
+        /** 解锁机器 */
+        this.machines = machines;
+        /** 研发后增加的修正buff */
+        this.modifiers = modifiers;
+    }
+}
+
+/** Buff类 */
+class Modifier{
+    constructor(name)
+    {
+        /** 名称 */
+        this.name = name;
+    }
+
+    // interface
+    ApplyToUniverse()
+    {
+
+    }
+
+    ApplyToStellar()
+    {
+
+    }
+
+    ApplyToPlanet()
+    {
+
     }
 }
