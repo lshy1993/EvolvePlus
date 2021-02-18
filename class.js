@@ -83,22 +83,29 @@ class Player{
     }
 
     Craft(recipe){
-        for(var ele of recipe.inputs){
-            this.bag[ele.id] -= ele.num;
+        var locked = {};
+        var res = this.CraftRecipe2(recipe, 1, locked);
+        if(res)
+        {
+            for(key in locked)
+            {
+                this.bag[key] -= locked[key];
+            }
+            for(ele of recipe.outputs)
+            {
+                if(this.bag[ele.id] == undefined)
+                    this.bag[ele.id] = ele.num;
+                else
+                    this.bag[ele.id] += ele.num;
+            }
         }
-        for(var ele of recipe.outputs){
-            this.bag[ele.id] += ele.num;
+        else
+        {
+            console.log("无法完成合成，请检查是否先通过了CanCraft的check。");
         }
     }
 
-    canCraft(recipe){
-        for(var ele of recipe.inputs){
-            if(this.bag[ele.id] < ele.num) return false;
-        }
-        return true;
-    }
-
-    CanCraftItem2(item, num, locked)
+    CraftItem(item)
     {
         var re = item2recipe[item];
         if(re == undefined || re.length <= 0)
@@ -108,7 +115,101 @@ class Player{
             if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
                 continue;
             //我们约定每种物品最多一种手搓方案
-            if(CanCraftRecipe2(recipe, num, locked))
+            if(Craft(recipe))
+                return true;
+            else
+                return false;
+        }
+        return false;
+    }
+
+    CraftItem2(item, num, locked)
+    {
+        var re = item2recipe[item];
+        if(re == undefined || re.length <= 0)
+            return false;
+        for(var recipe of re)
+        {
+            if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
+                continue;
+            //我们约定每种物品最多一种手搓方案
+            if(this.CraftRecipe2(recipe, num, locked))
+                return true;
+            else
+                return false;
+        }
+        return false;
+    }
+
+    CraftRecipe2(recipe, num, locked)
+    {
+        if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
+            return false;
+        var initem = publicRecipe[recipe].inputs;
+        if(initem == undefined || initem.length <= 0)
+            return true;
+        for(var ele of initem)
+        {
+            if(!this.CraftItem2(ele.id, ele.num * num, locked))
+                return false;
+        }
+        return true;
+    }
+
+    canCraft(recipe){
+        return this.CanCraftRecipe2(recipe, 1, {});
+    }
+
+    canCraftItem(item){
+        var re = item2recipe[item];
+        if(re == undefined || re.length <= 0)
+            return false;
+        for(var recipe of re)
+        {
+            if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
+                continue;
+            //我们约定每种物品最多一种手搓方案
+            if(this.CanCraftRecipe(recipe))
+                return true;
+            else
+                return false;
+        }
+        return false;
+    }
+
+    CanCraftItem2(item, num, locked)
+    {
+        var bagnum=0;
+        //剩余可用数目
+        if(this.bag[item] > 0)
+        {
+            bagnum = this.bag[item];
+            if(locked[item] > 0)
+                bagnum -= locked[item];
+        }
+        if(bagnum >= num)
+        {
+            if(locked[item] == undefined)
+                locked[item] = num;
+            else
+                locked[item] += num;
+            return true;
+        }
+        //还需要手搓num个
+        num -= bagnum;
+        if(locked[item] == undefined)
+            locked[item] = bagnum;
+        else
+            locked[item] += bagnum;
+        var re = item2recipe[item];
+        if(re == undefined || re.length <= 0)
+            return false;
+        for(var recipe of re)
+        {
+            if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
+                continue;
+            //我们约定每种物品最多一种手搓方案
+            if(this.CanCraftRecipe2(recipe, num, locked))
                 return true;
             else
                 return false;
@@ -125,7 +226,7 @@ class Player{
             return true;
         for(var ele of initem)
         {
-            if(!this.CanCraftItem2(ele.id, ele.num, locked))
+            if(!this.CanCraftItem2(ele.id, ele.num * num, locked))
                 return false;
         }
         return true;
