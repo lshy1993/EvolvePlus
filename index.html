@@ -56,7 +56,7 @@
           <div class="viewbox" v-if="opttype == 2">
             <div class="bd buildbox" v-for="(ele,index) in curPlanet.building">
               <div>#{{index}} {{ ele.name }}<span v-if="ele.isIdle()">【待机】</span></div>
-              <div v-if="ele.type==2">
+              <div v-if="ele.type==Types.Build.PowerPlant">
                 <div>发电量：{{ simNumber(ele.power) }}W</div>
                 <div v-if="ele.powertype > 1">
                   <div v-if="ele.fuel">{{ ele.fuel }}<span>{{ ele.progress() }}</span></div>

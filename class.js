@@ -462,7 +462,7 @@ class Planet{
         let powerall = 0;
         for(var ele of this.building){
             // console.log(ele);
-            if(ele.type == 2){
+            if(ele.type == Types.Build.PowerPlant){
                 let out = ele.power;
                 // 发电设施
                 if(ele.powertype >= 2){
