@@ -82,16 +82,19 @@ class Player{
         }
     }
 
+    //recipe:object
     Craft(recipe){
         var locked = {};
         var res = this.CraftRecipe2(recipe, 1, locked);
         if(res)
         {
-            for(key in locked)
+            console.log("comsume:",locked);
+            console.log("generate:",recipe.outputs);
+            for(var key in locked)
             {
                 this.bag[key] -= locked[key];
             }
-            for(ele of recipe.outputs)
+            for(var ele of recipe.outputs)
             {
                 if(this.bag[ele.id] == undefined)
                     this.bag[ele.id] = ele.num;
@@ -105,6 +108,7 @@ class Player{
         }
     }
 
+    //item: name
     CraftItem(item)
     {
         var re = item2recipe[item];
@@ -123,8 +127,31 @@ class Player{
         return false;
     }
 
+    //item: name
     CraftItem2(item, num, locked)
     {
+        var bagnum=0;
+        //剩余可用数目
+        if(this.bag[item] > 0)
+        {
+            bagnum = this.bag[item];
+            if(locked[item] > 0)
+                bagnum -= locked[item];
+        }
+        if(bagnum >= num)
+        {
+            if(locked[item] == undefined)
+                locked[item] = num;
+            else
+                locked[item] += num;
+            return true;
+        }
+        //还需要手搓num个
+        num -= bagnum;
+        if(locked[item] == undefined)
+            locked[item] = bagnum;
+        else
+            locked[item] += bagnum;
         var re = item2recipe[item];
         if(re == undefined || re.length <= 0)
             return false;
@@ -133,7 +160,7 @@ class Player{
             if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
                 continue;
             //我们约定每种物品最多一种手搓方案
-            if(this.CraftRecipe2(recipe, num, locked))
+            if(this.CraftRecipe2(publicRecipe[recipe], num, locked))
                 return true;
             else
                 return false;
@@ -141,11 +168,12 @@ class Player{
         return false;
     }
 
+    //recipe: object
     CraftRecipe2(recipe, num, locked)
     {
-        if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
+        if(recipe.type == Types.Recipe.CannotHandmade)
             return false;
-        var initem = publicRecipe[recipe].inputs;
+        var initem = recipe.inputs;
         if(initem == undefined || initem.length <= 0)
             return true;
         for(var ele of initem)
@@ -156,10 +184,12 @@ class Player{
         return true;
     }
 
+    //recipe: object
     canCraft(recipe){
         return this.CanCraftRecipe2(recipe, 1, {});
     }
 
+    //item: name
     canCraftItem(item){
         var re = item2recipe[item];
         if(re == undefined || re.length <= 0)
@@ -177,6 +207,7 @@ class Player{
         return false;
     }
 
+    //item: name
     CanCraftItem2(item, num, locked)
     {
         var bagnum=0;
@@ -209,7 +240,7 @@ class Player{
             if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
                 continue;
             //我们约定每种物品最多一种手搓方案
-            if(this.CanCraftRecipe2(recipe, num, locked))
+            if(this.CanCraftRecipe2(publicRecipe[recipe], num, locked))
                 return true;
             else
                 return false;
@@ -217,11 +248,12 @@ class Player{
         return false;
     }
 
+    //recipe: object
     CanCraftRecipe2(recipe, num, locked)
     {
-        if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
+        if(recipe.type == Types.Recipe.CannotHandmade)
             return false;
-        var initem = publicRecipe[recipe].inputs;
+        var initem = recipe.inputs;
         if(initem == undefined || initem.length <= 0)
             return true;
         for(var ele of initem)

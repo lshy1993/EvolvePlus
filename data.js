@@ -73,7 +73,8 @@ Types.Machine = {
     Furnace: 0,
     Crafter: 1,
     Refinery: 2,
-    ChemicalPlant:3
+    ChemicalPlant:3,
+    ScientificGroup:4,
 }
 publicRecipe["炼铁"] = {
     type: Types.Recipe.CanHandmade,
@@ -125,21 +126,21 @@ publicRecipe["原油裂解"] = {
     time: 3
 };
 publicRecipe["煤炭加工"] = {
-    type: Types.Recipe.Canhandmade,
+    type: Types.Recipe.CanHandmade,
     place: Types.Machine.Crafter,
     inputs: [{id:"煤",num:3}],
     outputs: [{id:"蜂窝煤",num:2}],
     time: 2
 };
 publicRecipe["电路板"] = {
-    type: Types.Recipe.Canhandmade,
+    type: Types.Recipe.CanHandmade,
     place: Types.Machine.Crafter,
     inputs: [{id:"铁锭",num:1},{id:"铜锭",num:2}],
     outputs: [{id:"电路板",num:2}],
     time: 1
 };
 publicRecipe["电池"] = {
-    type: Types.Recipe.Canhandmade,
+    type: Types.Recipe.CanHandmade,
     place: Types.Machine.ChemicalPlant,
     inputs: [{id:"铁锭",num:1},{id:"铜锭",num:1},{id:"硫酸",num:10}],
     outputs: [{id:"电池",num:1}],
@@ -209,10 +210,18 @@ publicRecipe["太阳能板"] = {
     outputs: [{id:"太阳能板",num:1}],
     time: 1,
 };
+//科技包
+publicRecipe["蓝科技包"] = {
+    type: Types.Recipe.CanHandmade,
+    place: Types.Machine.ScientificGroup,
+    inputs: [{id:"电路板",num:2},{id:"铁锭", num:2}],
+    outputs: [{id:"蓝科技包",num:1}],
+    time: 1,
+};
 
 var initialRecipe=["炼铁","炼铜","炼石","炼钛","煤炭加工","电路板","沙里淘硅","伐木机","采矿机","抽水机","油井","风力发电机","太阳能板"];
 
-var supportRecipe = [[],[],[],[]];
+var supportRecipe = [[],[],[],[],[]];
 var item2recipe={};
 for(var key in publicRecipe)
 {
