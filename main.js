@@ -15,7 +15,8 @@ var app = new Vue({
     curPowerPlant: undefined,
     curMachine: undefined,
     selectRes: undefined,
-    moveNum: 100
+    moveNum: 100,
+    itemRecipeDetail: undefined
   },
   created(){
     // TODO: load
@@ -67,14 +68,15 @@ var app = new Vue({
       this.curMachine = ele;
     },
     setRecipe(name){
-      if(this.showhover == 3){
-        this.curMachine.setRecipe(name);
-        this.closeHover();
-      }
-      else this.player.Craft(name);
+      this.curMachine.setRecipe(name);
+      this.closeHover();
     },
-    openCraft(){
-      this.showhover = 4;
+    setCraft(item){
+      // let recipename = item2recipe[item][0];
+      this.player.CraftItem(item);
+    },
+    openCraft(showall){
+      this.showhover = showall ? 5 : 4;
     },
     getMachineRecipe(){
       let d = this.curMachine.machinetype;
@@ -89,7 +91,7 @@ var app = new Vue({
       this.$forceUpdate();
     },
     openRes(name){
-      this.showhover = 5;
+      this.showhover = 6;
       this.selectRes = name;
     },
     moveToBag(all){

@@ -24,10 +24,9 @@ class Player{
             }else{
                 this.bag[key] = 1;
             }
-            
         }
         for(var key in buildingObject){
-            this.bag[key] = 2;
+            this.bag[key] = 0;
         }
         for(var key in publicTech){
             this.tech[key] = new Tech(key);
@@ -91,6 +90,22 @@ class Player{
     }
 
     /**
+     * 搓东西供ui调用
+     * @param {string} item 道具名
+     */
+    CraftItem(item)
+    {
+        var recipelist = item2recipe[item];
+        if(recipelist == undefined || recipelist.length <= 0) alert("没有对应的配方无法合成");
+        for(var recipe of recipelist)
+        {
+            if(publicRecipe[recipe].type == Types.Recipe.CanHandmade) break;
+        }
+        // 我们约定每种物品最多一种手搓方案
+        this.Craft(recipe);
+    }
+
+    /**
      * 按照配方搓
      * @param {string} name 配方名
      */
@@ -109,18 +124,10 @@ class Player{
             // console.log("generate:",recipe.outputs);
             console.log("queue:",queue);
             // console.log("echo:", echo);
-
-            // 消耗资源
+            // 预先消耗资源
             for(var key in locked)
             {
                 this.bag[key] -= locked[key];
-            }
-            for(var ele of recipe.outputs)
-            {
-                if(this.bag[ele.id] == undefined)
-                    this.bag[ele.id] = ele.num;
-                else
-                    this.bag[ele.id] += ele.num;
             }
             // 加入等待队列
             this.curRecipe = this.curRecipe.concat(queue);
@@ -129,28 +136,6 @@ class Player{
         {
             console.log(name,"无法合成，请检查是否先通过了CanCraft的check。");
         }
-    }
-
-    /**
-     * 搓东西
-     * @param {string} item 道具名
-     */
-    CraftItem(item)
-    {
-        var re = item2recipe[item];
-        if(re == undefined || re.length <= 0)
-            return false;
-        for(var recipe of re)
-        {
-            if(publicRecipe[recipe].type == Types.Recipe.CannotHandmade)
-                continue;
-            //我们约定每种物品最多一种手搓方案
-            if(Craft(recipe))
-                return true;
-            else
-                return false;
-        }
-        return false;
     }
 
     /**
@@ -350,7 +335,13 @@ class Player{
             }else if(this.curRecipe[index].echo != echo) break;
         }
         console.log("取消配方",echo,start,index);
-        this.curRecipe.splice(start, index-start+1);
+        for(var ele of this.curRecipe.splice(start, index-start+1)){
+            // 遍历返还资源
+            for(var item of ele.inputs)
+            {
+                this.bag[item.id] += item.num*ele.num;
+            }
+        }
         console.log("取消后",this.curRecipe);
     }
 
@@ -414,11 +405,12 @@ class Player{
             let recipe = this.curRecipe[0];
             if(!recipe) return;
             if(recipe.isFinish()){
-                for(var ele of recipe.inputs){
-                    this.bag[ele.id] -= ele.num;
-                }
-                for(var ele of recipe.outputs){
-                    this.bag[ele.id] += ele.num;
+                for(var ele of recipe.outputs)
+                {
+                    if(ele.id in this.bag)
+                        this.bag[ele.id] += ele.num;
+                    else
+                        this.bag[ele.id] = ele.num;
                 }
                 this.curRecipe.shift();
             }
@@ -521,12 +513,18 @@ class Planet{
         for(var key in baseResObject){
             this.baseRes[key] = 0;
         }
-        // 随机资源矿点5-10
-        let mine_num = 5+Math.ceil(Math.random()*5);
+        // 固定铁铜矿煤矿
+        for(var i=0;i<5;i++){
+            let name = baseRes_lv1_key[i];
+            // 数量级 7次方
+            this.mine.push(new Mine(name,7));
+        }
+        // 随机资源矿点0-5个
+        let mine_num = Math.ceil(Math.random()*5);
         for(var i=0;i<mine_num;i++){
             let name = Sample(baseRes_lv1_key);
             // 数量级 6-9次方
-            let d = 5+Math.ceil(Math.random()*3);
+            let d = 5 + Math.ceil(Math.random()*3);
             this.mine.push(new Mine(name,d));
         }
         console.log("plannet "+this.name+" init");

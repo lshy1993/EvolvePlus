@@ -239,6 +239,7 @@ for(var key in publicRecipe)
         }
     }
 }
+console.log(item2recipe);
 console.log(supportRecipe);
 
 //科技

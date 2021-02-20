@@ -107,8 +107,8 @@
         </div>
         <div class="col" style="width: 30%; height: 100%;">
           <div class="bd" style="height: 70%;">
-            <!-- <button @click="bagtype=1">背包</button> -->
-            <button @click="openCraft()">打开合成</button>
+            <button @click="openCraft(false)">制造</button>
+            <button @click="openCraft(true)">合成路线</button>
             <div style="overflow-y: auto;">
               <button v-for="(ele,index) in player.showBag()" class="res-icon" @click="openRes(index)">{{ index }}: {{ ele }}</button>
             </div>
@@ -151,13 +151,24 @@
           </button>
         </div>
         <div class="hoverWrap" v-if="showhover==4" @click.stop>
-          <button class="recipe-icon" v-for="(recipe,name) in publicRecipe" :disabled="recipe.type==Types.Recipe.CannotHandmade" :title="machineHint(recipe)" @click="setRecipe(name)">
-            <span v-for="(ele) in recipe.inputs">{{ ele.num }}{{ ele.id }}</span>
-            <div>↓</div>
-            <span v-for="(ele) in recipe.outputs">{{ ele.num }}{{ ele.id }}</span>
-          </button>
+          <button class="recipe-icon" v-for="(recipelist,item) in item2recipe" @mouseover="itemRecipeDetail=recipelist" @mouseleave="itemRecipeDetail=undefined" @click="setCraft(item)">{{ item }}</button>
+          <div v-if="itemRecipeDetail">
+            <div v-for="recipe in itemRecipeDetail" v-if="publicRecipe[recipe].type==Types.Recipe.CanHandmade">
+              <span v-for="(ele,k) in publicRecipe[recipe].inputs">{{ ele.num }}{{ ele.id }}{{ k==publicRecipe[recipe].inputs.length-1?"":"+" }}</span>
+              <span>-></span>
+              <span v-for="(ele) in publicRecipe[recipe].outputs">{{ ele.num }}{{ ele.id }}</span>
+            </div>
+          </div>
         </div>
         <div class="hoverWrap" v-if="showhover==5" @click.stop>
+          <div class="recipe-icon bd" v-for="(recipe,name) in publicRecipe" :title="machineHint(recipe)">
+            <div>{{ name }}</div>
+            <span v-for="(ele) in recipe.inputs">{{ ele.num }}{{ ele.id }}</span>
+            <span>-></span>
+            <span v-for="(ele) in recipe.outputs">{{ ele.num }}{{ ele.id }}</span>
+          </div>
+        </div>
+        <div class="hoverWrap" v-if="showhover==6" @click.stop>
           <div>{{ selectRes }}</div>
           <span>星球：{{ simNumber(curPlanet.baseRes[selectRes]) }}</span>
           <button @click="moveToBag(true)">全部拿到背包</button>

@@ -9,8 +9,10 @@
 }
 .hoverWrap{
     width: 1080px;
+    height: 640px;
     margin: 150px auto;
     background: white;
+    overflow-y: auto;
 }
 .bd{
     border: 1px solid black;
