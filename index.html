@@ -113,6 +113,9 @@
               <button v-for="(ele,index) in player.showBag()" class="res-icon" @click="openRes(index)">{{ index }}: {{ ele }}</button>
             </div>
             <div>合成队列</div>
+            <div>
+              <button v-for="(ele,index) in player.curRecipe" @click="player.CancelRecipe(ele)">{{ ele.outputs[0].id }}{{ ele.num }}</button>
+            </div>
           </div>
           <div class="bd" style="height: 30%;">星域图</div>
         </div>
@@ -141,14 +144,14 @@
           </button>
         </div>
         <div class="hoverWrap" v-if="showhover==3" @click.stop>
-          <button class="recipe-icon" v-for="name in getMachineRecipe()" @click="setRecipe(publicRecipe[name])">
+          <button class="recipe-icon" v-for="name in getMachineRecipe()" @click="setRecipe(name)">
             <span v-for="(ele) in publicRecipe[name].inputs">{{ ele.num }}{{ ele.id }}</span>
             <div>↓</div>
             <span v-for="(ele) in publicRecipe[name].outputs">{{ ele.num }}{{ ele.id }}</span>
           </button>
         </div>
         <div class="hoverWrap" v-if="showhover==4" @click.stop>
-          <button class="recipe-icon" v-for="recipe in publicRecipe" :disabled="recipe.type==Types.Recipe.CannotHandmade" :title="machineHint(recipe)" @click="setRecipe(recipe)">
+          <button class="recipe-icon" v-for="(recipe,name) in publicRecipe" :disabled="recipe.type==Types.Recipe.CannotHandmade" :title="machineHint(recipe)" @click="setRecipe(name)">
             <span v-for="(ele) in recipe.inputs">{{ ele.num }}{{ ele.id }}</span>
             <div>↓</div>
             <span v-for="(ele) in recipe.outputs">{{ ele.num }}{{ ele.id }}</span>

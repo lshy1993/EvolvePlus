@@ -226,7 +226,6 @@ var item2recipe={};
 for(var key in publicRecipe)
 {
     let ele = publicRecipe[key];
-    console.log(ele.place);
     supportRecipe[ele.place].push(key);
     var item = ele.outputs;
     if(item != undefined && item.length > 0)

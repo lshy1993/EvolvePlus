@@ -66,12 +66,12 @@ var app = new Vue({
       this.showhover = 3;
       this.curMachine = ele;
     },
-    setRecipe(recipe){
+    setRecipe(name){
       if(this.showhover == 3){
-        this.curMachine.setRecipe(recipe);
+        this.curMachine.setRecipe(name);
         this.closeHover();
       }
-      else this.player.Craft(recipe);
+      else this.player.Craft(name);
     },
     openCraft(){
       this.showhover = 4;

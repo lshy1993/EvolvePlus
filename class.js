@@ -10,13 +10,21 @@ class Player{
         this.recipes = {};
         /** 手动研究效率 */
         this.hashSpeed = 100;
+        /** 当前正在研究的科技 */
         this.curTech;
+        /** 正在手搓的配方 */
+        this.curRecipe = [];
         this.init();
     }
 
     init(){
         for(var key in baseResObject){
-            this.bag[key] = 100;
+            if(baseResObject[key].type == Types.ResourceType.Basic){
+                this.bag[key] = 10;
+            }else{
+                this.bag[key] = 1;
+            }
+            
         }
         for(var key in buildingObject){
             this.bag[key] = 2;
@@ -82,16 +90,27 @@ class Player{
         }
     }
 
-    //recipe:object
-    Craft(recipe){
+    /**
+     * 按照配方搓
+     * @param {string} name 配方名
+     */
+    Craft(name){
         var locked = {};
         var queue = [];
-        var res = this.CraftRecipe2(recipe, 1, locked, queue);
+        let recipe = new Recipe(name);
+        // 附上时间戳
+        let echo = new Date().getTime();
+        recipe.echo = echo;
+        recipe.num = 1;
+        var res = this.CraftRecipe2(recipe, locked, queue, echo);
         if(res)
         {
             console.log("comsume:",locked);
-            console.log("generate:",recipe.outputs);
+            // console.log("generate:",recipe.outputs);
             console.log("queue:",queue);
+            // console.log("echo:", echo);
+
+            // 消耗资源
             for(var key in locked)
             {
                 this.bag[key] -= locked[key];
@@ -103,14 +122,19 @@ class Player{
                 else
                     this.bag[ele.id] += ele.num;
             }
+            // 加入等待队列
+            this.curRecipe = this.curRecipe.concat(queue);
         }
         else
         {
-            console.log("无法完成合成，请检查是否先通过了CanCraft的check。");
+            console.log(name,"无法合成，请检查是否先通过了CanCraft的check。");
         }
     }
 
-    //item: name
+    /**
+     * 搓东西
+     * @param {string} item 道具名
+     */
     CraftItem(item)
     {
         var re = item2recipe[item];
@@ -129,8 +153,15 @@ class Player{
         return false;
     }
 
-    //item: name
-    CraftItem2(item, num, locked, queue)
+    /**
+     * 递归搓东西
+     * @param {string} item 
+     * @param {Number} num 
+     * @param {Object} locked 
+     * @param {Array} queue 
+     * @param {string} echo
+     */
+    CraftItem2(item, num, locked, queue, echo)
     {
         var bagnum=0;
         //剩余可用数目
@@ -157,6 +188,7 @@ class Player{
             else
                 locked[item] += bagnum;
         }
+        // 获取合成该物体的配方（仅有一种途径）
         var re = item2recipe[item];
         if(re == undefined || re.length <= 0)
             return false;
@@ -173,7 +205,10 @@ class Player{
                     numperrecipe = op[i].num;
             }
             num = Math.ceil(num / numperrecipe);
-            if(this.CraftRecipe2(publicRecipe[recipe], num, locked, queue))
+            let subrecipe = new Recipe(recipe);
+            subrecipe.echo = echo;
+            subrecipe.num = num;
+            if(this.CraftRecipe2(subrecipe, locked, queue, echo))
                 return true;
             else
                 return false;
@@ -181,33 +216,41 @@ class Player{
         return false;
     }
 
-    //recipe: object
-    CraftRecipe2(recipe, num, locked, queue)
+    /**
+     * 递归制作配方的原料
+     * @param {Recipte} recipe 配方类
+     * @param {Number} num 合成数目
+     * @param {Object} locked 消耗的资源
+     * @param {Array} queue 队列
+     * @param {string} echo 标签
+     */
+    CraftRecipe2(recipe, locked, queue, echo)
     {
         if(recipe.type == Types.Recipe.CannotHandmade)
             return false;
         var initem = recipe.inputs;
         if(initem == undefined || initem.length <= 0)
             return true;
+        let num = recipe.num;
         for(var ele of initem)
         {
-            if(!this.CraftItem2(ele.id, ele.num * num, locked, queue))
+            if(!this.CraftItem2(ele.id, ele.num * num, locked, queue, echo))
                 return false;
         }
-        for(var i=0; i<num; i++)
-        {
-            queue.push(recipe);
-        }
+        queue.push(recipe);
         return true;
     }
 
-    //recipe: object
-    canCraft(recipe){
+    /**
+     * 是否可以合成1个
+     * @param {string} recipe
+     */
+    CanCraft(recipe){
         return this.CanCraftRecipe2(recipe, 1, {});
     }
 
     //item: name
-    canCraftItem(item){
+    CanCraftItem(item){
         var re = item2recipe[item];
         if(re == undefined || re.length <= 0)
             return false;
@@ -276,7 +319,12 @@ class Player{
         return false;
     }
 
-    //recipe: object
+    /**
+     * recipe: object
+     * @param {*} recipe 
+     * @param {*} num 
+     * @param {*} locked 
+     */
     CanCraftRecipe2(recipe, num, locked)
     {
         if(recipe.type == Types.Recipe.CannotHandmade)
@@ -290,6 +338,20 @@ class Player{
                 return false;
         }
         return true;
+    }
+
+    CancelRecipe(recipe){
+        let echo = recipe.echo;
+        let start = -1;
+        console.log("当前",this.curRecipe);
+        for(var index in this.curRecipe){
+            if(start == -1){
+                if(this.curRecipe[index].echo == echo) start = index;
+            }else if(this.curRecipe[index].echo != echo) break;
+        }
+        console.log("取消配方",echo,start,index);
+        this.curRecipe.splice(start, index-start+1);
+        console.log("取消后",this.curRecipe);
     }
 
     SetMiner(resource){
@@ -345,6 +407,22 @@ class Player{
             }else{
                 this.curTech.cur_t -= 1;
             }
+        }
+        // 更新合成队列
+        
+        if(this.curRecipe){
+            let recipe = this.curRecipe[0];
+            if(!recipe) return;
+            if(recipe.isFinish()){
+                for(var ele of recipe.inputs){
+                    this.bag[ele.id] -= ele.num;
+                }
+                for(var ele of recipe.outputs){
+                    this.bag[ele.id] += ele.num;
+                }
+                this.curRecipe.shift();
+            }
+            else recipe.t += 1;
         }
     }
 }
@@ -610,12 +688,13 @@ class Planet{
     consume(ele,powerrate){
         let recipe = ele.recipe;
         if(recipe && !this.checkMachineEmpty(ele) && !this.checkMachineFull(ele)){
-            if(ele.t < recipe.time){
+            if(recipe.t < recipe.time){
                 // 积累时间
-                ele.t += 1*powerrate;
+                recipe.t += 1*ele.efficiency*powerrate;
                 return;
             }
-            ele.t = 0;
+            // 完成配方
+            recipe.t = 0;
             // 产物消耗
             for(var ele of recipe.inputs){
                 this.baseRes[ele.id] -= ele.num;
@@ -707,15 +786,32 @@ class Mine extends Resources{
 
 /** 配方 */
 class Recipe{
-    constructor(tag, inputs, outputs, time){
+    constructor(name){
+        let dd = publicRecipe[name];
+        if(!dd) console.log(name);
         /** 名称标记，暂时用于识别 */
-        this.tag = tag;
+        this.tag = name;
         /** 输入产物字典数组 */
         this.inputs = dd.inputs;
         /** 输出产物字典数组 */
         this.outputs = dd.outputs;
         /** 基础消耗时间 */
         this.time = dd.time;
+        /** 制作数量 */
+        this.num = 0;
+        /** 制作标记 */
+        this.echo;
+        /** 进度 */
+        this.t = 0;
+    }
+
+    isFinish(){
+        return this.t >= this.time;
+    }
+
+    progress(){
+        let t = this.t/this.time*100;
+        return t.toFixed(2);
     }
 }
 /** 科技 */
@@ -778,21 +874,22 @@ class Machine extends Building{
         let dd = buildingObject[name];
         /** 支持的配方 */
         this.machinetype = dd.machinetype;
+        /** 基础生产效率 */
+        this.efficiency = dd.speed;
         /** 当前运行配方 */
         this.recipe;
         /** 距离上次生产的时间 */
-        this.t = 0;
+        // this.t = 0;
     }
 
-    setRecipe(recipe){
+    setRecipe(name){
         console.log("配方已设置");
-        this.recipe = recipe;
-        this.t = 0;
+        this.recipe = new Recipe(name);
     }
 
     progress(){
-        let t = this.t/this.recipe.time*100;
-        return t.toFixed(2);
+        if(!this.recipe) return 0;
+        return this.recipe.progress();
     }
 }
 
