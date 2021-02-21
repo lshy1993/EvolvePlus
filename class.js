@@ -108,9 +108,24 @@ class Player {
         console.log("已取消科技" + tech.name);
         this.curTech.splice(i,1);
     }
+    /** 是否利用机器研究 */
+    isTechMachine(){
+        let tech = this.curTech[0];
+        return this.researchOn && tech !== undefined && !(tech.useBag);
+    }
 
     addFuel(name,num){
-        for(var i=0;i<num;i++) this.curFuel.push(new Fuel(name));
+        num = Math.min(this.bag[name],num);
+        this.bag[name] -= num;
+        console.log("已消耗",name,num);
+        for(var i=0;i<num;i++){
+            this.curFuel.push(new Fuel(name));
+        }
+    }
+    cancelFuel(num){
+        let fuel = this.curFuel.splice(num,1)[0];
+        // console.log(fuel);
+        this.bag[fuel.name] += 1;
     }
     showFuel(){
         let t = this.energy / this.energyTotal * 100;
@@ -430,24 +445,22 @@ class Player {
     update() {
         // console.log("player update");
         // 科技更新
-        if (this.researchOn && this.curTech[0] && this.curTech[0].useBag) {
-            if (this.checkTechEmpty(this.curTech[0])) {
+        if (this.researchOn && this.curTech[0] !== undefined && this.curTech[0].useBag) {
+            let tech = this.curTech[0];
+            if (this.checkTechEmpty(tech)) {
                 console.log('bag empty');
-            } else if (this.curTech[0].cur_t <= 0) {
-                // 先消耗瓶子
-                for (var key of this.curTech[0].inputs) {
-                    this.bag[key] -= 1;
-                }
-                this.curTech[0].cur_t = this.curTech[0].time;
-                // 增加
-                this.curTech[0].cur_hash += 1;
-                if (this.curTech[0].cur_hash == this.curTech[0].hash) {
+            } else {
+                if (tech.cur_t <= 0) {
+                    // 先消耗瓶子
+                    for (var key of tech.inputs) {
+                        this.bag[key] -= 1;
+                    }
+                }     
+                tech.update(1);
+                if (tech.isFinish()) {
                     console.log("科技完成");
                     this.curTech.pop(0);
                 }
-            } else {
-                console.log(this.curTech[0].cur_t);
-                this.curTech[0].cur_t -= 1;
             }
         }
         // 燃烧仓库
@@ -463,7 +476,7 @@ class Player {
         // 更新合成队列
         if (this.curRecipe) {
             let recipe = this.curRecipe[0];
-            if (!recipe) return;
+            if (recipe === undefined) return;
             if (recipe.isFinish()) {
                 for (var ele of recipe.inputs) {
                     var num = ele.num;
@@ -657,7 +670,7 @@ class Planet {
                 } else if (ele.type == Types.Build.Facotry) {
                     ele.loadpower = ele.recipe && !this.checkMachineEmpty(ele) && !this.checkMachineFull(ele) ? ele.power : ele.idlepower;
                 } else if (ele.type == Types.Build.Tech) {
-                    ele.loadpower = player.researchOn && player.curTech[0] && !this.checkTechEmpty() ? ele.power : ele.idlepower;
+                    ele.loadpower = player.isTechMachine() && !this.checkTechEmpty(player.curTech[0]) ? ele.power : ele.idlepower;
                 }
                 powerload += -ele.loadpower;
             }
@@ -708,9 +721,16 @@ class Planet {
         }
         return false;
     }
-    checkTechEmpty() {
-        if(player.curTech[0]) return player.checkTechEmpty();
+    /** 检测研究站是否确少原料 */
+    checkTechEmpty(tech) {
+        for (var key of tech.inputs) {
+            if (this.baseRes[key] <= 0) return true;
+        }
         return false;
+    }
+    showEmptyWarning(){
+        let tech = player.curTech[0];
+        return player.isTechMachine() && this.checkTechEmpty(tech);
     }
     /** 检测发电站原料 */
     checkPlantEmpty(plant) {
@@ -735,7 +755,7 @@ class Planet {
             } else if (ele.type == 3) {
                 this.consume(ele, powerrate);
             } else if (ele.type == 4) {
-                if (player.curTech && !player.curTech.useBag) this.tech(powerrate);
+                if(!ele.isIdle()) this.tech(powerrate);
             }
         }
     }
@@ -779,21 +799,21 @@ class Planet {
     }
 
     tech(powerrate) {
-        if (this.checkTechEmpty()) {
+        let tech = player.curTech[0];
+        if (this.checkTechEmpty(tech)) {
             console.log('星球科技包不足');
-        } else if (player.curTech.cur_t <= 0) {
-            for (var key of player.curTech.inputs) {
-                this.baseRes[key] -= 1;
-            }
-            player.curTech.cur_t = player.curTech.time;
-            // 增加进度
-            player.curTech.cur_hash += 1;
-            if (player.curTech.cur_hash >= player.curTech.hash) {
+        }else{
+            if (tech.cur_t <= 0) {
+                // 消耗瓶子
+                for (var key of tech.inputs) {
+                    this.baseRes[key] -= 1;
+                }
+            }            
+            tech.update(powerrate);
+            if (tech.isFinish()) {
                 console.log("科技完成");
-                player.curTech = null;
+                player.curTech.pop(0);
             }
-        } else {
-            player.curTech.cur_t -= 1 * powerrate;
         }
     }
 }
@@ -925,6 +945,14 @@ class Tech {
         let t = this.cur_hash / this.hash * 100;
         return t;
     }
+
+    update(time){
+        this.cur_t -= time;
+        if(this.cur_t <= 0){
+            // 增加研究进度
+            this.cur_hash += 1;
+        }
+    }
 }
 
 /** 建筑类 */
@@ -999,7 +1027,7 @@ class PowerPlant extends Building {
     }
 
     progress() {
-        if(this.fuel) return this.fuel.progress();
+        if(this.fuel !== undefined) return this.fuel.progress();
         return 0;
     }
 }

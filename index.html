@@ -58,7 +58,7 @@
               <div v-if="ele.type==Types.Build.PowerPlant">
                 <div>发电量：{{ simNumber(ele.power) }}W</div>
                 <div v-if="ele.powertype > 1">
-                  <div v-if="ele.fuelname">{{ ele.fuelname }}<span>{{ ele.progress() }}</span></div>
+                  <div v-if="ele.fuelname">{{ ele.fuelname }}<span>{{ ele.progress() }}%</span></div>
                   <button @click="openFuel(ele)">选择燃料</button>
                   <div class="warning">
                     <span v-if="curPlanet.checkPlantEmpty(ele)" title="燃料不足">空</span>
@@ -79,7 +79,7 @@
                 <div>当前功率: {{ simNumber(-ele.loadpower) }}W</div>
                 <div class="warning">
                   <span v-if="curPlanet.checkPower()" title="电量不足">电</span>
-                  <span v-if="curPlanet.checkTechEmpty()" title="原料不足">空</span>
+                  <span v-if="curPlanet.showEmptyWarning()" title="原料不足">空</span>
                 </div>
               </div>
               <button v-if="ele.update">升级</button>
@@ -94,8 +94,8 @@
               </div>
               <div v-if="player.curTech[0]">
                 <div class="progressbar bd">
-                  {{ player.getTechName() }}: {{ player.getTechProgress() }}%
                   <div class="barhover" :style="'width:'+player.getTechProgress()+'%'"></div>
+                  <div style="z-index: 1002;position: relative;">{{ player.getTechName() }}: {{ player.getTechProgress() }}%</div>
                 </div>
                 <button @click="pauseTech()">{{ player.researchOn?"暂停":"继续"}}</button>
                 <label>使用背包</label>
@@ -114,24 +114,24 @@
         <div class="col" style="width: 30%; height: 100%;">
           <div class="bd" style="height: 20%;">
             <div class="progressbar">
-              能量{{ simNumber(player.energy) }}J
               <div class="barhover" :style="'width:'+player.showFuel()+'%'"></div>
+              <div style="position: relative; z-index: 1002;">能量{{ simNumber(player.energy) }}J</div>
             </div>
             <div>燃料室:
               <span v-if="player.curFuel[0]">{{ player.curFuel[0].name }}: {{ player.curFuel[0].progress() }}%</span>
-              <div>
-                <button v-for="(ele,index) in player.curFuel" v-if="index>0">{{ele.name}}</button>
-                <button @click="showhover=7">添加燃料</button>
+              <button @click="showhover=7">添加燃料</button>
+              <div style="height: 40px; white-space: nowrap; overflow-x: auto;">
+                <button v-for="(ele,index) in player.curFuel" v-if="index>0" @click="player.cancelFuel(index)">{{ele.name}}</button>
               </div>
             </div>            
             <div>燃烧效率:{{ simNumber(player.fuelEfficiency) }}W</div>
             <div>星际航行速度:</div>
-            <div>背包容量：</div>
           </div>
-          <div class="bd" style="height: 50%;">            
+          <div class="bd" style="height: 50%;">
+            <div>背包容量：</div>
             <button @click="openCraft(false)">制造</button>
             <button @click="openCraft(true)">合成路线</button>
-            <div style="overflow-y: auto;">
+            <div style="height: 70%; overflow-y: auto;">
               <button v-for="(ele,index) in player.showBag()" class="res-icon" @click="openRes(index)">{{ index }}: {{ ele }}</button>
             </div>
             <div>合成队列</div>
