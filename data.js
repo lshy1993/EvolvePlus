@@ -260,6 +260,12 @@ publicTech["高级冶炼"] = {
     count:20,
     recipes:["炼钢"]
 };
+publicTech["高级冶炼2"] = {
+    inputs:["蓝科技包"],
+    time:2,
+    count:20,
+    recipes:["炼钢"]
+};
 
 //建筑
 var buildingObject = {};

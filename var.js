@@ -7,6 +7,7 @@ for(var key in baseResObject){
     if(ele.type==Types.ResourceType.Compound) baseRes_lv2_key.push(key);
     if(ele.heat > 0) fuleRes.push(key);
 }
+console.log(baseRes_lv1_key);
 
 var miner_key = ["伐木机","采矿机","抽水机","油井","轨道采集器"];
 var machine_key = ["合成台","熔炉","炼油厂","化工厂"];

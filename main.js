@@ -59,8 +59,8 @@ var app = new Vue({
       this.showhover = 2;
       this.curPowerPlant = ele;
     },
-    setFuel(index){
-      this.curPowerPlant.setFuel(index);
+    setFuel(name){
+      this.curPowerPlant.setFuel(name);
       this.closeHover();
     },
     openRecipe(ele){
