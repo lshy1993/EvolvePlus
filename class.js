@@ -509,14 +509,40 @@ class Player {
 /** 宇宙 */
 class Universe {
     constructor(stellar_num) {
+        // 整个宇宙划分为 100*100格子 边长为1光年
         this.stellars = [];
+        this.t = 0;
+        // 临时判定是否重复
+        this.map = [];
+        for(var i=0;i<100;i++){
+            let t = [];
+            for(var j=0;j<100;j++){
+                t.push(0);
+            }
+            this.map.push(t);
+        }
         // 恒星系数目
         for (var i = 0; i < stellar_num; i++) {
-            this.stellars.push(new Stellar());
+            // 随机星系名
+            let name = rndChar(2);
+            let fixstar = 1;
+            let pos = this.rndpos();
+            let radius = Math.floor(Math.random());
+            this.stellars.push(new Stellar(name,fixstar,pos,radius));
         }
     }
 
+    rndpos(){
+        let i,j;
+        do{
+            i = Math.floor(Math.random()*50);
+            j = Math.floor(Math.random()*50);
+        }while(this.map[i][j]);
+        return [i,j];
+    }
+
     update() {
+        this.t += 1;
         this.stellars.forEach(element => {
             element.update();
         })
@@ -529,36 +555,46 @@ class Universe {
 
 /** 恒星系 */
 class Stellar {
-    constructor() {
-        this.name = "";
+    constructor(name,fixstar,pos,radius) {
+        this.name = name;
         /** 恒星数目 */
-        this.fixnum = 1;
-        /** 内部行星(含恒星) */
+        this.fixstar = fixstar;
+        /** 宇宙坐标 */
+        this.pos = pos;
+        /** 最大半径 */
+        this.radius = radius;
+        /** 内部行星(含0号恒星) */
         this.planets = [];
         this.init();
     }
 
     init() {
-        // 随机星系名
-        this.name = rndChar(2);
         // TODO：双星系统
-
         // 随机生成1-5颗行星
-        let star_num = Math.ceil(Math.random() * 5);
+        let star_num = this.fixstar + Math.ceil(Math.random() * 5);
         for (var i = 0; i < star_num; i++) {
-            if (i == 0) {
-                this.planets.push(new Planet(this, true));
+            let name = rndChar(2) + rndNum(4);
+            if (i < this.fixstar) {
+                this.planets.push(new Planet(name, true));
             } else {
                 let parent = this.planets[i - 1]; // 默认作为上颗星的卫星
                 let flag = Math.floor(Math.random() * 100);
                 if (flag >= 95 && parent.parent === undefined) {
-                    this.planets.push(new Planet(this, false, parent));
+                    this.planets.push(new Planet(name, false, parent));
                 } else {
-                    this.planets.push(new Planet(this, false));
+                    this.planets.push(new Planet(name, false));
                 }
             }
         }
         console.log("stellar " + this.name + " init");
+    }
+
+    maxrad(){
+        let max = 0;
+        for(var ele of this.planets){
+            if(ele.radius > max) max = ele.radius;
+        }
+        return max;
     }
 
     update() {
@@ -575,13 +611,19 @@ class Stellar {
 
 /** 行星 */
 class Planet {
-    constructor(stellar, isfixed, parent) {
-        this.stellar = stellar;
-        this.name = "";
+    constructor(name, isfixed, parent) {
+        // this.stellar = stellar;
+        this.name = name;
         /** 是否恒星 */
         this.isfixed = isfixed;
-        /** 星球的类型0-8不同类型 */
+        /** 半径 */
+        this.radius = isfixed ? 0 : 1e8*(10**(-1+Math.random()*3));
+        /** 星球的类型0-8不同类型 */ //TODO 根据距离决定类型
         this.type = Math.ceil(Math.random() * 8);
+        /** 公转周期 */
+        this.revolution = Math.floor(60*5+Math.random()*10*60);
+        /** 自转周期 负数为反向 */
+        this.rotation = Math.floor(60*5+Math.random()*10*60);
         /** 是否是其他星的卫星 */
         this.parent = parent;
         /** 星球储存资源 */
@@ -596,7 +638,6 @@ class Planet {
     }
 
     init() {
-        this.name = rndChar(2) + rndNum(4);
         for (var key in baseResObject) {
             this.baseRes[key] = 0;
         }
@@ -615,6 +656,12 @@ class Planet {
             this.mine.push(new Mine(name, d));
         }
         console.log("plannet " + this.name + " init");
+    }
+    radius2px(t,maxrad,x){
+        let theta = Math.PI * (t/this.revolution);// 时间/公转周期
+        let px = this.radius/maxrad*300;
+        if(x) return 500+px*Math.sin(theta);
+        return 300+px*Math.cos(theta);
     }
     /** 显示储存的资源 */
     showRes() {

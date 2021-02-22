@@ -8,7 +8,6 @@ var app = new Vue({
     hiddentop: false,
     universe,
     player,
-    curStellar: undefined,
     curPlanet: undefined,
     stellar_k: 0,
     planet_k: 0,
@@ -16,7 +15,11 @@ var app = new Vue({
     curMachine: undefined,
     selectRes: undefined,
     moveNum: 100,
-    itemRecipeDetail: undefined
+    itemRecipeDetail: undefined,
+    selectStellar: 0,
+    // selectPlanet: 0,
+    t: 0,
+    maxrad: 0
   },
   created(){
     // TODO: load
@@ -25,7 +28,8 @@ var app = new Vue({
   },
   computed:{
     stellarName(){
-      if(this.curStellar) return this.curStellar.name;
+      let stellar = universe.getStellar(this.stellar_k);
+      if(stellar) return stellar.name;
       else return "";
     },
     planetName(){
@@ -35,8 +39,10 @@ var app = new Vue({
   },
   methods:{
     movePlanet(){
-      this.curStellar = universe.getStellar(this.stellar_k);
-      this.curPlanet = this.curStellar.getPlanet(this.planet_k);
+      let curStellar = universe.getStellar(this.stellar_k);
+      this.selectStellar = this.stellar_k;
+      this.maxrad = curStellar.maxrad();
+      this.curPlanet = curStellar.getPlanet(this.planet_k);
       console.log("move to planet "+this.curPlanet.name);
     },
     closeHover(){
@@ -111,6 +117,12 @@ var app = new Vue({
     machineHint(recipe){
       if(recipe.type==Types.Recipe.CannotHandmade) return '只能在'+machine_key[recipe.place]+'合成';
       return "";
+    },
+    showStellar(index){
+      this.selectStellar = index;
+      this.t = universe.t;
+      this.maxrad = universe.stellars[index].maxrad();
+      console.log(this.maxrad);
     },
     mainLoop(){
       player.update();

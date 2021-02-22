@@ -20,6 +20,7 @@
       <header class="bd">
         <div>{{ stellarName }}星系-{{ planetName }}星
           <button @click="hiddentop=!hiddentop">资源总览</button>
+          <button @click="showhover=8;selectStellar=planet_k">打开星域图</button>
           <div>电网负荷：{{ curPlanet.getPowerRate() }}% 总消耗：{{curPlanet.getPowerLoad()}}W 总发电：{{curPlanet.getPowerAll()}}W</div>
         </div>
         <transition name="fade">
@@ -112,7 +113,7 @@
           </div>
         </div>
         <div class="col" style="width: 30%; height: 100%;">
-          <div class="bd" style="height: 20%;">
+          <div class="bd" style="height: 25%;">
             <div class="progressbar">
               <div class="barhover" :style="'width:'+player.showFuel()+'%'"></div>
               <div style="position: relative; z-index: 1002;">能量{{ simNumber(player.energy) }}J</div>
@@ -127,10 +128,11 @@
             <div>燃烧效率:{{ simNumber(player.fuelEfficiency) }}W</div>
             <div>星际航行速度:</div>
           </div>
-          <div class="bd" style="height: 50%;">
-            <div>背包容量：</div>
-            <button @click="openCraft(false)">制造</button>
-            <button @click="openCraft(true)">合成路线</button>
+          <div class="bd" style="height: 75%;">
+            <div>背包容量：
+              <button @click="openCraft(false)">制造</button>
+              <button @click="openCraft(true)">合成路线</button>
+            </div>
             <div style="height: 70%; overflow-y: auto;">
               <button v-for="(ele,index) in player.showBag()" class="res-icon" @click="openRes(index)">{{ index }}: {{ ele }}</button>
             </div>
@@ -138,8 +140,7 @@
             <div>
               <button v-for="(ele,index) in player.curRecipe" @click="player.CancelRecipe(ele)">{{ ele.outputs[0].id }}{{ ele.num }}</button>
             </div>
-          </div>
-          <div class="bd" style="height: 30%;">星域图</div>
+          </div>          
         </div>
       </div>      
       <div>{{ message }}</div>
@@ -206,6 +207,18 @@
             <div>热值: {{ simNumber(baseResObject[ele].heat) }}J</div>
             <div>剩余: {{ player.bag[ele] }}</div>
           </button>
+        </div>
+        <div class="hoverWrap" v-if="showhover==8" @click.stop>
+          <div>
+            <button @click="selectStellar=-1">Universe</button>
+            <span v-if="selectStellar!=-1"> > {{ universe.stellars[selectStellar].name }}</span>
+          </div>
+          <div style="position: relative;" v-if="selectStellar==-1">
+            <button v-for="(ele,index) in universe.stellars" class="starpt" :style="'left:'+ele.pos[0]*10+'px; top:'+ele.pos[1]*10+'px;'" @click="showStellar(index)">{{ ele.name }}</button>
+          </div>
+          <div style="position: relative;" v-if="selectStellar!=-1">
+            <button v-for="(ele) in universe.stellars[selectStellar].planets" class="starpt" :style="'left:'+ele.radius2px(t,maxrad,true)+'px; top:'+ele.radius2px(t,maxrad,false)+'px;'">{{ ele.name }}</button>
+          </div>          
         </div>
         <button @click="closeHover()">关闭</button>
       </div>

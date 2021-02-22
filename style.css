@@ -43,6 +43,10 @@ header{
     vertical-align: top;
 }
 
+.starpt{
+    position: absolute;
+}
+
 .res-icon{
     display: inline-block;
     width: 120px;
