@@ -36,7 +36,7 @@ class Player {
             }
         }
         for (var key in buildingObject) {
-            this.bag[key] = 1;
+            this.bag[key] = 10;
         }
         for (var key in publicTech) {
             this.tech[key] = new Tech(key);
