@@ -56,8 +56,19 @@ class Player {
         }
         return d;
     }
-    hasItem(name) {
-        return this.bag[name] > 0;
+    hasItem(name,num=1) {
+        if(name in this.bag){
+            return this.bag[name] >= num;
+        }
+        return false;
+    }
+    AddStorage(key,num){
+        if(key in this.bag) this.bag[key] += num;
+        else this.bag[key] = num;
+    }
+    RemoveStorage(key,num){
+        if(num > this.bag[key]) num = this.bag[key];
+        this.bag[key] -= num;
     }
 
     showTech() {
@@ -737,9 +748,24 @@ class Planet {
         else this.building.push(new Machine(index));
     }
 
-    removeBuild(index) {
+    RemoveBuild(index) {
         this.building.splice(index, 1);
         // TODO:返还inputs等
+    }
+
+    hasItem(name,num=1) {
+        if(name in this.baseRes){
+            return this.baseRes[name] >= num;
+        }
+        return false;
+    }
+    AddStorage(key,num){
+        if(key in this.baseRes) this.baseRes[key] += num;
+        else this.baseRes[key] = num;
+    }
+    RemoveStorage(key,num){
+        if(num > this.baseRes[key]) num = this.baseRes[key];
+        this.baseRes[key] -= num;
     }
 
     /** 检测电力状态 */
@@ -781,7 +807,7 @@ class Planet {
     }
     /** 检测发电站原料 */
     checkPlantEmpty(plant) {
-        if (plant.fuel) return this.baseRes[plant.fuel] < 1;
+        if (plant.fuelname) return this.baseRes[plant.fuelname] < 1;
         return true;
     }
     update() {
@@ -802,7 +828,7 @@ class Planet {
             } else if (ele.type == 3) {
                 this.consume(ele, powerrate);
             } else if (ele.type == 4) {
-                if(!ele.isIdle()) this.tech(powerrate);
+                if(!ele.isIdle()) this.tech(ele,powerrate);
             }
         }
     }
@@ -810,8 +836,9 @@ class Planet {
     genpower(ele) {
         // TODO: 动态计算负载和燃料热值
         if (ele.powertype >= 2) {
-            if(ele.fuelname === undefined || this.baseRes[ele.fuelname]==0) return;
+            if(ele.fuelname === undefined) return;
             if(ele.fuel === undefined || ele.fuel.curHeat <= 0){
+                if(this.baseRes[ele.fuelname] == 0) return;
                 // 添加一个新的
                 console.log("添加", ele.fuelname);
                 this.baseRes[ele.fuelname] -= 1;
@@ -827,35 +854,39 @@ class Planet {
     consume(ele, powerrate) {
         let recipe = ele.recipe;
         if (recipe && !this.checkMachineEmpty(ele) && !this.checkMachineFull(ele)) {
+            if(recipe.t >= recipe.time){
+                // 产物消耗
+                for (var item of recipe.inputs) {
+                    this.baseRes[item.id] -= item.num;
+                }
+                // 重置配方
+                recipe.t = 0;
+            }
             if (recipe.t < recipe.time) {
                 // 积累时间
                 recipe.t += 1 * ele.efficiency * powerrate;
                 return;
             }
-            // 完成配方
-            recipe.t = 0;
-            // 产物消耗
-            for (var ele of recipe.inputs) {
-                this.baseRes[ele.id] -= ele.num;
-            }
             // 产出增加
-            for (var ele of recipe.outputs) {
-                this.baseRes[ele.id] += ele.num;
+            for (var item of recipe.outputs) {
+                this.baseRes[item.id] += item.num;
             }
+                    
         }
     }
 
-    tech(powerrate) {
+    tech(ele,powerrate) {
         let tech = player.curTech[0];
         if (this.checkTechEmpty(tech)) {
             console.log('星球科技包不足');
         }else{
-            if (tech.cur_t <= 0) {
+            if (tech.cur_t >= tech.time) {
                 // 消耗瓶子
                 for (var key of tech.inputs) {
                     this.baseRes[key] -= 1;
                 }
-            }            
+                tech.cur_t = 0;
+            }
             tech.update(powerrate);
             if (tech.isFinish()) {
                 console.log("科技完成");
@@ -952,7 +983,7 @@ class Recipe {
         /** 制作标记 */
         this.echo;
         /** 进度 */
-        this.t = 0;
+        this.t = dd.time;
         /** 锁定的背包物品，这是对于合成num个recipe总的而言的 */
         this.locked = {};
     }
@@ -962,7 +993,9 @@ class Recipe {
     }
 
     progress(p = 100) {
+        if(this.t == 0) return 0;
         let t = this.t / this.time * p;
+        console.log(t,this.t,this.time);
         return t.toFixed(2);
     }
 }
@@ -975,7 +1008,7 @@ class Tech {
         /** 单步消耗时间 */
         this.time = tech.time;
         /** 累计时间 */
-        this.cur_t = 0;
+        this.cur_t = tech.time;
         /** 总哈希值 */
         this.hash = tech.count;
         /** 已完成部分 */
@@ -994,8 +1027,8 @@ class Tech {
     }
 
     update(time){
-        this.cur_t -= time;
-        if(this.cur_t <= 0){
+        this.cur_t += time;
+        if(this.cur_t >= this.time){
             // 增加研究进度
             this.cur_hash += 1;
         }
@@ -1048,7 +1081,7 @@ class Machine extends Building {
     }
 
     progress() {
-        if (!this.recipe) return 0;
+        if (this.recipe === undefined) return 0;
         return this.recipe.progress();
     }
 }
@@ -1082,6 +1115,10 @@ class PowerPlant extends Building {
 class TechCenter extends Building {
     constructor(name) {
         super(name);
+    }
+
+    progress(){
+
     }
 }
 

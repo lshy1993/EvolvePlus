@@ -14,7 +14,7 @@ var app = new Vue({
     curPowerPlant: undefined,
     curMachine: undefined,
     selectRes: undefined,
-    moveNum: 100,
+    moveNum: 1,
     itemRecipeDetail: undefined,
     selectStellar: 0,
     // selectPlanet: 0,
@@ -57,7 +57,7 @@ var app = new Vue({
     },
     removeBuild(name,index){
       // 星球移除
-      this.curPlanet.removeBuild(index);
+      this.curPlanet.RemoveBuild(index);
       // 玩家增加
       this.player.bag[name] += 1;
     },
@@ -104,15 +104,28 @@ var app = new Vue({
       let key = this.selectRes;
       let num = Math.min(this.moveNum,this.curPlanet.baseRes[key]);
       if(all) num = this.curPlanet.baseRes[key];
-      this.player.bag[key] += num;
-      this.curPlanet.baseRes[key] -= num;
+      this.player.AddStorage(key,num);
+      this.curPlanet.RemoveStorage(key,num);
+      console.log(key, 'move to bag', num);
+      this.$forceUpdate();
     },
     moveToPlanet(all){
       let key = this.selectRes;
-      let num = Math.min(this.moveNum,this.player.bag[key]);
+      let num = Math.min(this.moveNum, this.player.bag[key]);
       if(all) num = this.player.bag[key];
-      this.player.bag[key] -= num;
-      this.curPlanet.baseRes[key] += num;
+      this.player.RemoveStorage(key,num);
+      this.curPlanet.AddStorage(key,num);
+      console.log(key, 'move to planet', num);
+      this.$forceUpdate();
+    },
+    moveAllToPlanet(){
+      let dic = this.player.showBag();
+      for(var key in dic){
+        let num = this.player.bag[key];
+        this.player.RemoveStorage(key,num);
+        this.curPlanet.AddStorage(key,num);
+      }
+      this.$forceUpdate();
     },
     machineHint(recipe){
       if(recipe.type==Types.Recipe.CannotHandmade) return '只能在'+machine_key[recipe.place]+'合成';

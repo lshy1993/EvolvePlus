@@ -18,19 +18,17 @@
   <body>
     <div id="app">
       <div class="col" style="width: 70%; height: 100%;">
-        <div class="bd" style="height: 10%;">
+        <div class="bd" style="height: 110px;">
           <div>{{ stellarName }}星系-{{ planetName }}星
             <!-- <button @click="hiddentop=!hiddentop">资源总览</button> -->
             <button @click="showhover=8;selectStellar=planet_k">打开星域图</button>
             <div>电网负荷：{{ curPlanet.getPowerRate() }}% 总消耗：{{curPlanet.getPowerLoad()}}W 总发电：{{curPlanet.getPowerAll()}}W</div>
           </div>
-          <transition name="fade" tag="div" style="overflow-y: auto;">
-            <!-- <div v-show="!hiddentop"> -->
-              <button v-for="(ele,index) in curPlanet.showRes()" class="res-icon" @click="openRes(index)">{{ index }}: {{ ele }}</button>
-            <!-- </div> -->
-          </transition>
+          <transition-group name="fade" tag="div" style="height: 60px; overflow-y: auto;">
+            <button v-for="(ele,index) in curPlanet.showRes()" class="res-icon" @click="openRes(index)" :key="index">{{ index }}: {{ ele }}</button>
+          </transition-group>
         </div>
-        <div class="bd" style="height: 90%;">
+        <div class="bd" style="height: 85%;">
           <div style="height: 25px;">
             <button @click="opttype=1">资源</button>
             <button @click="opttype=2">建筑</button>
@@ -78,6 +76,7 @@
               </div>
               <div v-if="ele.type==4">
                 <div>当前功率: {{ simNumber(-ele.loadpower) }}W</div>
+                <div>研究：<span>{{ ele.progress() }}%</span></div>
                 <div class="warning">
                   <span v-if="curPlanet.checkPower()" title="电量不足">电</span>
                   <span v-if="curPlanet.showEmptyWarning()" title="原料不足">空</span>
@@ -133,6 +132,7 @@
           <div>背包容量：
             <button @click="openCraft(false)">制造</button>
             <button @click="openCraft(true)">合成路线</button>
+            <button @click="moveAllToPlanet()">全部存到星球</button>
           </div>
           <div style="height: 70%; overflow-y: auto;">
             <button v-for="(ele,index) in player.showBag()" class="res-icon" @click="openRes(index)">{{ index }}: {{ ele }}</button>
@@ -194,11 +194,11 @@
         <div class="hoverWrap" v-if="showhover==6" @click.stop>
           <div>{{ selectRes }}</div>
           <span>星球：{{ simNumber(curPlanet.baseRes[selectRes]) }}</span>
-          <button @click="moveToBag(true)">全部拿到背包</button>
-          <button @click="moveToBag(false)">拿到背包</button>
+          <button :disabled="!curPlanet.hasItem(selectRes)" @click="moveToBag(true)">全部拿到背包</button>
+          <button :disabled="!curPlanet.hasItem(selectRes,moveNum)" @click="moveToBag(false)">拿到背包</button>
           <input type="number" v-model="moveNum">
-          <button @click="moveToPlanet(true)">存到星球</button>
-          <button @click="moveToPlanet(false)">全部存到星球</button>
+          <button :disabled="!player.hasItem(selectRes,moveNum)" @click="moveToPlanet(false)">存到星球</button>
+          <button :disabled="!player.hasItem(selectRes)" @click="moveToPlanet(true)">全部存到星球</button>
           <span>背包：{{ player.bag[selectRes] }}</span>
         </div>
         <div class="hoverWrap" v-if="showhover==7" @click.stop>
